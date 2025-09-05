@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🖥️ Server-Side Business Logic Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+        .section {
+            margin: 30px 0;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            border: 1px solid #e8ecf4;
+        }
+        .section h2 {
+            color: #2c3e50;
+            border-bottom: 3px solid #e74c3c;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .api-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .api-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+        .api-panel h3 {
+            margin-top: 0;
+            color: #495057;
+            display: flex;
+            align-items: center;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            margin-left: 10px;
+        }
+        .badge.api { background: #e74c3c; }
+        .badge.go { background: #00add8; }
+        .endpoint {
+            background: #343a40;
+            color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+        }
+        .endpoint .method {
+            background: #28a745;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 10px;
+        }
+        button {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(231, 76, 60, 0.3);
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .highlight {
+            background: #ffeaa7;
+            border: 1px solid #fdcb6e;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .highlight strong {
+            color: #d63031;
+        }
+        .performance-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #e74c3c;
+            margin: 20px 0;
+        }
+        .performance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .comparison-link {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            border-radius: 10px;
+            color: white;
+        }
+        .comparison-link a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        .comparison-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖥️ Server-Side Business Logic Dashboard</h1>
+        <p class="subtitle">Demonstrating identical Go business logic running on the server via HTTP APIs</p>
+        
+        <div class="comparison-link">
+            <a href="/">🌐 Compare with WebAssembly Client-Side Demo →</a>
+        </div>
+        
+        <div class="highlight">
+            <strong>🎯 Key Point:</strong> These server endpoints use the exact same Go business logic functions as the WebAssembly client-side demo. The validation rules, calculations, and algorithms are identical - demonstrating true code sharing between frontend and backend!
+        </div>
+
+        <div class="section">
+            <h2>📋 Available API Endpoints</h2>
+            <div class="api-grid">
+                <div class="api-panel">
+                    <h3>Business Logic APIs <span class="badge api">REST</span></h3>
+                    <div class="endpoint">
+                        <span class="method">POST</span>/api/validate-user
+                    </div>
+                    <div class="endpoint">
+                        <span class="method">POST</span>/api/validate-product
+                    </div>
+                    <div class="endpoint">
+                        <span class="method">POST</span>/api/calculate-order
+                    </div>
+                    <div class="endpoint">
+                        <span class="method">POST</span>/api/recommend-products
+                    </div>
+                    <div class="endpoint">
+                        <span class="method">POST</span>/api/analyze-behavior
+                    </div>
+                </div>
+                
+                <div class="api-panel">
+                    <h3>Performance Benchmarks <span class="badge go">GO</span></h3>
+                    <div class="endpoint">
+                        <span class="method">GET</span>/api/benchmark/matrix?size=100
+                    </div>
+                    <div class="endpoint">
+                        <span class="method">GET</span>/api/benchmark/mandelbrot?width=800&height=600
+                    </div>
+                    <div class="endpoint">
+                        <span class="method">GET</span>/api/benchmark/hash?count=10000
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Test Business Logic APIs</h2>
+            <p>These forms call server endpoints that use the same shared Go business logic as the WebAssembly client:</p>
+            
+            <div class="api-grid">
+                <div class="api-panel">
+                    <h3>👤 User Validation API</h3>
+                    <button onclick="testUserValidation()">Test User Validation</button>
+                    <div id="userValidationResults" class="results"></div>
+                </div>
+                
+                <div class="api-panel">
+                    <h3>📦 Product Validation API</h3>
+                    <button onclick="testProductValidation()">Test Product Validation</button>
+                    <div id="productValidationResults" class="results"></div>
+                </div>
+                
+                <div class="api-panel">
+                    <h3>🧮 Order Calculation API</h3>
+                    <button onclick="testOrderCalculation()">Test Order Calculation</button>
+                    <div id="orderCalculationResults" class="results"></div>
+                </div>
+                
+                <div class="api-panel">
+                    <h3>🎯 Product Recommendations API</h3>
+                    <button onclick="testRecommendations()">Test Recommendations</button>
+                    <div id="recommendationsResults" class="results"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚡ Server Performance Benchmarks</h2>
+            <p>Compare server-side performance of the same algorithms used in the WebAssembly demo:</p>
+            
+            <div class="performance-grid">
+                <div class="performance-card">
+                    <h4>🔢 Matrix Multiplication</h4>
+                    <div class="form-group">
+                        <label>Matrix Size:</label>
+                        <select id="serverMatrixSize">
+                            <option value="50">50x50</option>
+                            <option value="100" selected>100x100</option>
+                            <option value="200">200x200</option>
+                            <option value="300">300x300</option>
+                        </select>
+                    </div>
+                    <button onclick="benchmarkServerMatrix()">Run Server Benchmark</button>
+                    <div id="serverMatrixResults" class="results"></div>
+                </div>
+                
+                <div class="performance-card">
+                    <h4>🎨 Mandelbrot Set</h4>
+                    <div class="form-group">
+                        <label>Resolution:</label>
+                        <select id="serverMandelbrotSize">
+                            <option value="400,300">400x300</option>
+                            <option value="800,600" selected>800x600</option>
+                            <option value="1200,900">1200x900</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Iterations:</label>
+                        <select id="serverMandelbrotIterations">
+                            <option value="100">100</option>
+                            <option value="200" selected>200</option>
+                            <option value="300">300</option>
+                        </select>
+                    </div>
+                    <button onclick="benchmarkServerMandelbrot()">Run Server Benchmark</button>
+                    <div id="serverMandelbrotResults" class="results"></div>
+                </div>
+                
+                <div class="performance-card">
+                    <h4>🔐 Cryptographic Hashing</h4>
+                    <div class="form-group">
+                        <label>Hash Count:</label>
+                        <select id="serverHashCount">
+                            <option value="1000">1,000</option>
+                            <option value="10000" selected>10,000</option>
+                            <option value="50000">50,000</option>
+                        </select>
+                    </div>
+                    <button onclick="benchmarkServerHash()">Run Server Benchmark</button>
+                    <div id="serverHashResults" class="results"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Code Comparison</h2>
+            <div class="highlight">
+                <p><strong>Shared Business Logic Implementation:</strong></p>
+                <pre style="background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 5px; overflow-x: auto;">
+// This EXACT same function runs on both server and client:
+func ValidateUser(user User) ValidationResult {
+    result := ValidationResult{Valid: true, Errors: []string{}}
+    
+    // Email validation
+    emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+    if !emailRegex.MatchString(user.Email) {
+        result.Valid = false
+        result.Errors = append(result.Errors, "Invalid email format")
+    }
+    
+    // Additional validation rules...
+    return result
+}
+
+// Server HTTP handler:
+func handleValidateUser(w http.ResponseWriter, r *http.Request) {
+    var user User
+    json.NewDecoder(r.Body).Decode(&user)
+    result := ValidateUser(user)  // ← Same function!
+    json.NewEncoder(w).Encode(result)
+}
+
+// WebAssembly wrapper:
+func validateUserWasm(this js.Value, args []js.Value) interface{} {
+    user, _ := UserFromJSON(args[0].String())
+    result := ValidateUser(user)  // ← Same function!
+    return result
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test business logic APIs
+        async function testUserValidation() {
+            const testUser = {
+                email: "john.doe@example.com",
+                name: "John Doe",
+                age: 28,
+                country: "US",
+                premium: true
+            };
+            
+            document.getElementById('userValidationResults').textContent = 'Testing user validation API...\n';
+            
+            try {
+                const response = await fetch('/api/validate-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testUser)
+                });
+                const result = await response.json();
+                
+                document.getElementById('userValidationResults').textContent = 
+                    `✅ User Validation API Response:\n\n` +
+                    `Status: ${result.valid ? 'Valid' : 'Invalid'}\n` +
+                    `Input: ${JSON.stringify(testUser, null, 2)}\n` +
+                    `Result: ${JSON.stringify(result, null, 2)}`;
+            } catch (error) {
+                document.getElementById('userValidationResults').textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testProductValidation() {
+            const testProduct = {
+                name: "Wireless Headphones",
+                price: 99.99,
+                category: "electronics",
+                rating: 4.5,
+                in_stock: true
+            };
+            
+            document.getElementById('productValidationResults').textContent = 'Testing product validation API...\n';
+            
+            try {
+                const response = await fetch('/api/validate-product', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testProduct)
+                });
+                const result = await response.json();
+                
+                document.getElementById('productValidationResults').textContent = 
+                    `✅ Product Validation API Response:\n\n` +
+                    `Status: ${result.valid ? 'Valid' : 'Invalid'}\n` +
+                    `Input: ${JSON.stringify(testProduct, null, 2)}\n` +
+                    `Result: ${JSON.stringify(result, null, 2)}`;
+            } catch (error) {
+                document.getElementById('productValidationResults').textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testOrderCalculation() {
+            const testData = {
+                order: {
+                    products: [
+                        { id: 1, name: "Wireless Headphones", price: 99.99, category: "electronics" },
+                        { id: 2, name: "Cotton T-Shirt", price: 24.99, category: "clothing" }
+                    ],
+                    quantities: [1, 2]
+                },
+                user: {
+                    email: "john.doe@example.com",
+                    name: "John Doe",
+                    age: 28,
+                    country: "US",
+                    premium: true
+                }
+            };
+            
+            document.getElementById('orderCalculationResults').textContent = 'Testing order calculation API...\n';
+            
+            try {
+                const response = await fetch('/api/calculate-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testData)
+                });
+                const result = await response.json();
+                
+                document.getElementById('orderCalculationResults').textContent = 
+                    `✅ Order Calculation API Response:\n\n` +
+                    `Subtotal: $${result.subtotal.toFixed(2)}\n` +
+                    `Tax: $${result.tax.toFixed(2)}\n` +
+                    `Shipping: $${result.shipping.toFixed(2)}\n` +
+                    `Discount: $${result.discount.toFixed(2)}\n` +
+                    `Total: $${result.total.toFixed(2)}`;
+            } catch (error) {
+                document.getElementById('orderCalculationResults').textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testRecommendations() {
+            const testData = {
+                user: {
+                    email: "john.doe@example.com",
+                    name: "John Doe",
+                    age: 28,
+                    country: "US",
+                    premium: true
+                },
+                products: [
+                    { id: 1, name: "Wireless Headphones", price: 99.99, category: "electronics", in_stock: true, rating: 4.5 },
+                    { id: 2, name: "Cotton T-Shirt", price: 24.99, category: "clothing", in_stock: true, rating: 4.2 },
+                    { id: 3, name: "Programming Book", price: 49.99, category: "books", in_stock: true, rating: 4.8 },
+                    { id: 4, name: "Coffee Mug", price: 12.99, category: "home", in_stock: true, rating: 4.0 },
+                    { id: 5, name: "Running Shoes", price: 129.99, category: "sports", in_stock: true, rating: 4.6 }
+                ],
+                order: {
+                    products: [
+                        { id: 1, name: "Wireless Headphones", price: 99.99, category: "electronics" }
+                    ]
+                }
+            };
+            
+            document.getElementById('recommendationsResults').textContent = 'Testing recommendations API...\n';
+            
+            try {
+                const response = await fetch('/api/recommend-products', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testData)
+                });
+                const result = await response.json();
+                
+                document.getElementById('recommendationsResults').textContent = 
+                    `✅ Recommendations API Response:\n\n` +
+                    `Recommended Products:\n` +
+                    result.map(p => `• ${p.name} - $${p.price} (${p.category})`).join('\n');
+            } catch (error) {
+                document.getElementById('recommendationsResults').textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        // Performance benchmarks
+        async function benchmarkServerMatrix() {
+            const size = parseInt(document.getElementById('serverMatrixSize').value);
+            document.getElementById('serverMatrixResults').textContent = 'Running server-side matrix benchmark...\n';
+            
+            try {
+                const response = await fetch(`/api/benchmark/matrix?size=${size}`);
+                const result = await response.json();
+                
+                document.getElementById('serverMatrixResults').textContent = 
+                    `✅ Server Matrix Multiplication Benchmark:\n\n` +
+                    `Operation: ${result.operation}\n` +
+                    `Size: ${result.size}\n` +
+                    `Duration: ${result.duration_ms.toFixed(2)}ms\n` +
+                    `Operations: ${result.operations.toLocaleString()}\n` +
+                    `Throughput: ${(result.operations / result.duration_ms * 1000).toFixed(0)} ops/sec`;
+            } catch (error) {
+                document.getElementById('serverMatrixResults').textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function benchmarkServerMandelbrot() {
+            const [width, height] = document.getElementById('serverMandelbrotSize').value.split(',').map(Number);
+            const iterations = parseInt(document.getElementById('serverMandelbrotIterations').value);
+            
+            document.getElementById('serverMandelbrotResults').textContent = 'Running server-side Mandelbrot benchmark...\n';
+            
+            try {
+                const response = await fetch(`/api/benchmark/mandelbrot?width=${width}&height=${height}&iterations=${iterations}`);
+                const result = await response.json();
+                
+                document.getElementById('serverMandelbrotResults').textContent = 
+                    `✅ Server Mandelbrot Set Benchmark:\n\n` +
+                    `Operation: ${result.operation}\n` +
+                    `Size: ${result.size}\n` +
+                    `Iterations: ${result.iterations}\n` +
+                    `Duration: ${result.duration_ms.toFixed(2)}ms\n` +
+                    `Pixels: ${result.pixels.toLocaleString()}\n` +
+                    `Throughput: ${(result.pixels / result.duration_ms * 1000).toFixed(0)} pixels/sec`;
+            } catch (error) {
+                document.getElementById('serverMandelbrotResults').textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function benchmarkServerHash() {
+            const count = parseInt(document.getElementById('serverHashCount').value);
+            document.getElementById('serverHashResults').textContent = 'Running server-side hash benchmark...\n';
+            
+            try {
+                const response = await fetch(`/api/benchmark/hash?count=${count}`);
+                const result = await response.json();
+                
+                document.getElementById('serverHashResults').textContent = 
+                    `✅ Server SHA256 Hash Benchmark:\n\n` +
+                    `Operation: ${result.operation}\n` +
+                    `Count: ${result.count.toLocaleString()}\n` +
+                    `Duration: ${result.duration_ms.toFixed(2)}ms\n` +
+                    `Throughput: ${(result.count / result.duration_ms * 1000).toFixed(0)} hashes/sec`;
+            } catch (error) {
+                document.getElementById('serverHashResults').textContent = `❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
