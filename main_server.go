@@ -15,24 +15,24 @@ import (
 func main() {
 	// Serve static files
 	http.HandleFunc("/", serveStaticFile)
-	
+
 	// API endpoints using shared business logic
 	http.HandleFunc("/api/validate-user", handleValidateUser)
 	http.HandleFunc("/api/validate-product", handleValidateProduct)
 	http.HandleFunc("/api/calculate-order", handleCalculateOrder)
 	http.HandleFunc("/api/recommend-products", handleRecommendProducts)
 	http.HandleFunc("/api/analyze-behavior", handleAnalyzeBehavior)
-	
+
 	// Demo data endpoints
 	http.HandleFunc("/api/demo-users", handleDemoUsers)
 	http.HandleFunc("/api/demo-products", handleDemoProducts)
 	http.HandleFunc("/api/demo-orders", handleDemoOrders)
-	
+
 	// Performance benchmark endpoints
 	http.HandleFunc("/api/benchmark/matrix", handleMatrixBenchmark)
 	http.HandleFunc("/api/benchmark/mandelbrot", handleMandelbrotBenchmark)
 	http.HandleFunc("/api/benchmark/hash", handleHashBenchmark)
-	
+
 	fmt.Println("🚀 Server starting on http://localhost:8080")
 	fmt.Println("📊 Visit /server.html for server-side demo")
 	fmt.Println("🌐 Visit / for WebAssembly demo")
@@ -52,21 +52,21 @@ func handleValidateUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
 		return
 	}
-	
+
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	
+
 	var user User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
-	
+
 	// Use shared business logic - identical to WebAssembly version
 	result := ValidateUser(user)
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
 }
@@ -77,21 +77,21 @@ func handleValidateProduct(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
 		return
 	}
-	
+
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	
+
 	var product Product
 	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
-	
+
 	// Use shared business logic - identical to WebAssembly version
 	result := ValidateProduct(product)
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
 }
@@ -102,25 +102,25 @@ func handleCalculateOrder(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
 		return
 	}
-	
+
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	
+
 	var requestData struct {
 		Order Order `json:"order"`
 		User  User  `json:"user"`
 	}
-	
+
 	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
-	
+
 	// Use shared business logic - identical to WebAssembly version
 	CalculateOrderTotal(&requestData.Order, requestData.User)
-	
+
 	response := map[string]interface{}{
 		"subtotal": requestData.Order.Subtotal,
 		"tax":      requestData.Order.Tax,
@@ -128,7 +128,7 @@ func handleCalculateOrder(w http.ResponseWriter, r *http.Request) {
 		"discount": requestData.Order.Discount,
 		"total":    requestData.Order.Total,
 	}
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
@@ -139,26 +139,26 @@ func handleRecommendProducts(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
 		return
 	}
-	
+
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	
+
 	var requestData struct {
 		User     User      `json:"user"`
 		Products []Product `json:"products"`
 		Order    Order     `json:"order"`
 	}
-	
+
 	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
-	
+
 	// Use shared business logic - identical to WebAssembly version
 	recommendations := RecommendProducts(requestData.User, requestData.Products, requestData.Order)
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(recommendations)
 }
@@ -169,25 +169,25 @@ func handleAnalyzeBehavior(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
 		return
 	}
-	
+
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	
+
 	var requestData struct {
 		Users  []User  `json:"users"`
 		Orders []Order `json:"orders"`
 	}
-	
+
 	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
-	
+
 	// Use shared business logic - identical to WebAssembly version
 	analytics := AnalyzeUserBehavior(requestData.Users, requestData.Orders)
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(analytics)
 }
@@ -223,7 +223,7 @@ func handleMatrixBenchmark(w http.ResponseWriter, r *http.Request) {
 			size = parsedSize
 		}
 	}
-	
+
 	result := benchmarkMatrixMultiply(size)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
@@ -233,7 +233,7 @@ func handleMandelbrotBenchmark(w http.ResponseWriter, r *http.Request) {
 	enableCORS(w)
 	width, height := 400, 300
 	iterations := 100
-	
+
 	if w := r.URL.Query().Get("width"); w != "" {
 		if parsed, err := strconv.Atoi(w); err == nil {
 			width = parsed
@@ -249,7 +249,7 @@ func handleMandelbrotBenchmark(w http.ResponseWriter, r *http.Request) {
 			iterations = parsed
 		}
 	}
-	
+
 	result := benchmarkMandelbrot(width, height, iterations)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
@@ -263,7 +263,7 @@ func handleHashBenchmark(w http.ResponseWriter, r *http.Request) {
 			count = parsed
 		}
 	}
-	
+
 	result := benchmarkSHA256(count)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
@@ -289,18 +289,18 @@ func generateDemoUsers() []User {
 // Server-side benchmark implementations using the same algorithms
 func benchmarkMatrixMultiply(size int) map[string]interface{} {
 	start := time.Now()
-	
+
 	// Create test matrices
 	matrixA := make([]float64, size*size)
 	matrixB := make([]float64, size*size)
 	result := make([]float64, size*size)
-	
+
 	// Initialize with test data
 	for i := 0; i < size*size; i++ {
 		matrixA[i] = float64(i % 10)
 		matrixB[i] = float64((i * 2) % 10)
 	}
-	
+
 	// Matrix multiplication
 	for i := 0; i < size; i++ {
 		for k := 0; k < size; k++ {
@@ -310,82 +310,82 @@ func benchmarkMatrixMultiply(size int) map[string]interface{} {
 			}
 		}
 	}
-	
+
 	duration := time.Since(start)
-	
+
 	return map[string]interface{}{
-		"operation":    "Matrix Multiplication",
-		"size":         fmt.Sprintf("%dx%d", size, size),
-		"duration_ms":  float64(duration.Nanoseconds()) / 1000000,
-		"operations":   size * size * size,
-		"result_hash":  int(result[0] + result[size-1] + result[len(result)-1]),
+		"operation":   "Matrix Multiplication",
+		"size":        fmt.Sprintf("%dx%d", size, size),
+		"duration_ms": float64(duration.Nanoseconds()) / 1000000,
+		"operations":  size * size * size,
+		"result_hash": int(result[0] + result[size-1] + result[len(result)-1]),
 	}
 }
 
 func benchmarkMandelbrot(width, height, iterations int) map[string]interface{} {
 	start := time.Now()
-	
+
 	xmin, xmax := -2.0, 1.0
 	ymin, ymax := -1.5, 1.5
-	
+
 	result := make([]int, width*height)
 	dx := (xmax - xmin) / float64(width)
 	dy := (ymax - ymin) / float64(height)
-	
+
 	idx := 0
 	for py := 0; py < height; py++ {
 		cy := ymin + float64(py)*dy
 		for px := 0; px < width; px++ {
 			cx := xmin + float64(px)*dx
-			
+
 			zx, zy := 0.0, 0.0
 			iter := 0
-			
+
 			for iter < iterations {
 				zx2 := zx * zx
 				zy2 := zy * zy
-				
+
 				if zx2+zy2 > 4.0 {
 					break
 				}
-				
+
 				zy = (zx+zx)*zy + cy
 				zx = zx2 - zy2 + cx
 				iter++
 			}
-			
+
 			result[idx] = iter
 			idx++
 		}
 	}
-	
+
 	duration := time.Since(start)
-	
+
 	return map[string]interface{}{
-		"operation":    "Mandelbrot Set",
-		"size":         fmt.Sprintf("%dx%d", width, height),
-		"iterations":   iterations,
-		"duration_ms":  float64(duration.Nanoseconds()) / 1000000,
-		"pixels":       width * height,
-		"result_hash":  result[0] + result[len(result)/2] + result[len(result)-1],
+		"operation":   "Mandelbrot Set",
+		"size":        fmt.Sprintf("%dx%d", width, height),
+		"iterations":  iterations,
+		"duration_ms": float64(duration.Nanoseconds()) / 1000000,
+		"pixels":      width * height,
+		"result_hash": result[0] + result[len(result)/2] + result[len(result)-1],
 	}
 }
 
 func benchmarkSHA256(count int) map[string]interface{} {
 	start := time.Now()
-	
+
 	data := "WebAssembly performance test data for hashing benchmark"
 	hash := 0
-	
+
 	for i := 0; i < count; i++ {
 		hasher := sha256.New()
 		hasher.Write([]byte(fmt.Sprintf("%s-%d", data, i)))
 		sum := hasher.Sum(nil)
 		hash += int(sum[0])
 	}
-	
+
 	duration := time.Since(start)
-	
+
 	return map[string]interface{}{
 		"operation":   "SHA256 Hashing",
 		"count":       count,

@@ -30,17 +30,17 @@ type Product struct {
 }
 
 type Order struct {
-	ID          int       `json:"id"`
-	UserID      int       `json:"user_id"`
-	Products    []Product `json:"products"`
-	Quantities  []int     `json:"quantities"`
-	Subtotal    float64   `json:"subtotal"`
-	Tax         float64   `json:"tax"`
-	Shipping    float64   `json:"shipping"`
-	Total       float64   `json:"total"`
-	Discount    float64   `json:"discount"`
-	OrderDate   string    `json:"order_date"`
-	Status      string    `json:"status"`
+	ID         int       `json:"id"`
+	UserID     int       `json:"user_id"`
+	Products   []Product `json:"products"`
+	Quantities []int     `json:"quantities"`
+	Subtotal   float64   `json:"subtotal"`
+	Tax        float64   `json:"tax"`
+	Shipping   float64   `json:"shipping"`
+	Total      float64   `json:"total"`
+	Discount   float64   `json:"discount"`
+	OrderDate  string    `json:"order_date"`
+	Status     string    `json:"status"`
 }
 
 type ValidationResult struct {
@@ -51,26 +51,26 @@ type ValidationResult struct {
 // Shared business logic - identical implementation on server and client
 func ValidateUser(user User) ValidationResult {
 	result := ValidationResult{Valid: true, Errors: []string{}}
-	
+
 	// Email validation
 	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	if !emailRegex.MatchString(user.Email) {
 		result.Valid = false
 		result.Errors = append(result.Errors, "Invalid email format")
 	}
-	
+
 	// Name validation
 	if len(strings.TrimSpace(user.Name)) < 2 {
 		result.Valid = false
 		result.Errors = append(result.Errors, "Name must be at least 2 characters")
 	}
-	
+
 	// Age validation
 	if user.Age < 13 || user.Age > 120 {
 		result.Valid = false
 		result.Errors = append(result.Errors, "Age must be between 13 and 120")
 	}
-	
+
 	// Country validation
 	validCountries := []string{"US", "CA", "UK", "DE", "FR", "JP", "AU", "IN", "BR", "MX"}
 	isValidCountry := false
@@ -84,30 +84,30 @@ func ValidateUser(user User) ValidationResult {
 		result.Valid = false
 		result.Errors = append(result.Errors, "Invalid country code")
 	}
-	
+
 	return result
 }
 
 func ValidateProduct(product Product) ValidationResult {
 	result := ValidationResult{Valid: true, Errors: []string{}}
-	
+
 	// Name validation
 	if len(strings.TrimSpace(product.Name)) < 3 {
 		result.Valid = false
 		result.Errors = append(result.Errors, "Product name must be at least 3 characters")
 	}
-	
+
 	// Price validation
 	if product.Price <= 0 {
 		result.Valid = false
 		result.Errors = append(result.Errors, "Price must be greater than 0")
 	}
-	
+
 	if product.Price > 10000 {
 		result.Valid = false
 		result.Errors = append(result.Errors, "Price cannot exceed $10,000")
 	}
-	
+
 	// Category validation
 	validCategories := []string{"electronics", "clothing", "books", "home", "sports", "toys", "beauty"}
 	isValidCategory := false
@@ -121,13 +121,13 @@ func ValidateProduct(product Product) ValidationResult {
 		result.Valid = false
 		result.Errors = append(result.Errors, "Invalid category")
 	}
-	
+
 	// Rating validation
 	if product.Rating < 0 || product.Rating > 5 {
 		result.Valid = false
 		result.Errors = append(result.Errors, "Rating must be between 0 and 5")
 	}
-	
+
 	return result
 }
 
@@ -139,7 +139,7 @@ func CalculateOrderTotal(order *Order, user User) {
 			order.Subtotal += product.Price * float64(order.Quantities[i])
 		}
 	}
-	
+
 	// Apply premium discount
 	order.Discount = 0
 	if user.Premium {
@@ -149,32 +149,32 @@ func CalculateOrderTotal(order *Order, user User) {
 			order.Discount = order.Subtotal * 0.10 // 10% premium discount
 		}
 	}
-	
+
 	// Calculate tax (varies by country)
 	taxRate := GetTaxRate(user.Country)
 	order.Tax = (order.Subtotal - order.Discount) * taxRate
-	
+
 	// Calculate shipping
 	order.Shipping = CalculateShipping(order.Subtotal, user.Country, user.Premium)
-	
+
 	// Calculate total
 	order.Total = order.Subtotal - order.Discount + order.Tax + order.Shipping
 }
 
 func GetTaxRate(country string) float64 {
 	taxRates := map[string]float64{
-		"US": 0.08,  // 8%
-		"CA": 0.13,  // 13% GST+PST
-		"UK": 0.20,  // 20% VAT
-		"DE": 0.19,  // 19% VAT
-		"FR": 0.20,  // 20% VAT
-		"JP": 0.10,  // 10% consumption tax
-		"AU": 0.10,  // 10% GST
-		"IN": 0.18,  // 18% GST
-		"BR": 0.17,  // 17% ICMS
-		"MX": 0.16,  // 16% IVA
+		"US": 0.08, // 8%
+		"CA": 0.13, // 13% GST+PST
+		"UK": 0.20, // 20% VAT
+		"DE": 0.19, // 19% VAT
+		"FR": 0.20, // 20% VAT
+		"JP": 0.10, // 10% consumption tax
+		"AU": 0.10, // 10% GST
+		"IN": 0.18, // 18% GST
+		"BR": 0.17, // 17% ICMS
+		"MX": 0.16, // 16% IVA
 	}
-	
+
 	if rate, exists := taxRates[country]; exists {
 		return rate
 	}
@@ -185,7 +185,7 @@ func CalculateShipping(subtotal float64, country string, isPremium bool) float64
 	if isPremium && subtotal > 75 {
 		return 0 // Free shipping for premium users over $75
 	}
-	
+
 	// Base shipping rates by country
 	shippingRates := map[string]float64{
 		"US": 8.99,
@@ -199,22 +199,22 @@ func CalculateShipping(subtotal float64, country string, isPremium bool) float64
 		"BR": 16.99,
 		"MX": 13.99,
 	}
-	
+
 	baseRate := 12.99 // Default
 	if rate, exists := shippingRates[country]; exists {
 		baseRate = rate
 	}
-	
+
 	// Free shipping threshold
 	if subtotal > 100 {
 		return 0
 	}
-	
+
 	// Express shipping for orders over $50
 	if subtotal > 50 {
 		return baseRate * 1.5
 	}
-	
+
 	return baseRate
 }
 
@@ -222,63 +222,63 @@ func CalculateShipping(subtotal float64, country string, isPremium bool) float64
 func RecommendProducts(user User, allProducts []Product, currentOrder Order) []Product {
 	recommendations := []Product{}
 	userCategory := inferUserPreference(user, currentOrder)
-	
+
 	// Score-based recommendation
 	productScores := make(map[int]float64)
-	
+
 	for _, product := range allProducts {
 		if !product.InStock {
 			continue
 		}
-		
+
 		score := 0.0
-		
+
 		// Category preference
 		if strings.ToLower(product.Category) == userCategory {
 			score += 3.0
 		}
-		
+
 		// Price preference based on user's current order
 		avgOrderPrice := getAverageProductPrice(currentOrder)
 		priceDiff := abs(product.Price - avgOrderPrice)
 		if priceDiff < avgOrderPrice*0.3 { // Within 30% of average
 			score += 2.0
 		}
-		
+
 		// Rating boost
 		score += product.Rating * 0.5
-		
+
 		// Premium user gets higher-end recommendations
 		if user.Premium && product.Price > avgOrderPrice*1.2 {
 			score += 1.0
 		}
-		
+
 		// Age-based preferences
 		if user.Age < 25 && (product.Category == "electronics" || product.Category == "toys") {
 			score += 1.0
 		} else if user.Age > 40 && (product.Category == "home" || product.Category == "books") {
 			score += 1.0
 		}
-		
+
 		productScores[product.ID] = score
 	}
-	
+
 	// Sort by score and return top 5
 	for len(recommendations) < 5 {
 		bestID := -1
 		bestScore := -1.0
-		
+
 		for id, score := range productScores {
 			if score > bestScore {
 				bestScore = score
 				bestID = id
 			}
 		}
-		
+
 		if bestID == -1 {
 			break
 		}
-		
+
 		// Find and add the product
 		for _, product := range allProducts {
 			if product.ID == bestID {
@@ -286,10 +286,10 @@ func RecommendProducts(user User, allProducts []Product, currentOrder Order) []P
 				break
 			}
 		}
-		
+
 		delete(productScores, bestID)
 	}
-	
+
 	return recommendations
 }
 
@@ -304,13 +304,13 @@ func inferUserPreference(user User, order Order) string {
 			return "home"
 		}
 	}
-	
+
 	// Find most common category in current order
 	categoryCount := make(map[string]int)
 	for _, product := range order.Products {
 		categoryCount[strings.ToLower(product.Category)]++
 	}
-	
+
 	mostCommon := ""
 	maxCount := 0
 	for category, count := range categoryCount {
@@ -319,7 +319,7 @@ func inferUserPreference(user User, order Order) string {
 			mostCommon = category
 		}
 	}
-	
+
 	return mostCommon
 }
 
@@ -327,12 +327,12 @@ func getAverageProductPrice(order Order) float64 {
 	if len(order.Products) == 0 {
 		return 50.0 // Default
 	}
-	
+
 	total := 0.0
 	for _, product := range order.Products {
 		total += product.Price
 	}
-	
+
 	return total / float64(len(order.Products))
 }
 
@@ -346,16 +346,16 @@ func abs(x float64) float64 {
 // Data processing and analytics - same algorithms on server and client
 func AnalyzeUserBehavior(users []User, orders []Order) UserAnalytics {
 	analytics := UserAnalytics{}
-	
+
 	if len(users) == 0 {
 		return analytics
 	}
-	
+
 	// Calculate demographics
 	ageSum := 0
 	countryCount := make(map[string]int)
 	premiumCount := 0
-	
+
 	for _, user := range users {
 		ageSum += user.Age
 		countryCount[user.Country]++
@@ -363,24 +363,24 @@ func AnalyzeUserBehavior(users []User, orders []Order) UserAnalytics {
 			premiumCount++
 		}
 	}
-	
+
 	analytics.AverageAge = float64(ageSum) / float64(len(users))
 	analytics.PremiumPercentage = (float64(premiumCount) / float64(len(users))) * 100
 	analytics.TopCountries = getTopCountries(countryCount, 3)
-	
+
 	// Analyze orders
 	if len(orders) > 0 {
 		totalRevenue := 0.0
 		totalOrders := len(orders)
-		
+
 		for _, order := range orders {
 			totalRevenue += order.Total
 		}
-		
+
 		analytics.TotalRevenue = totalRevenue
 		analytics.AverageOrderValue = totalRevenue / float64(totalOrders)
 	}
-	
+
 	return analytics
 }
 
@@ -397,12 +397,12 @@ func getTopCountries(countryCount map[string]int, limit int) []string {
 		country string
 		count   int
 	}
-	
+
 	pairs := []countryPair{}
 	for country, count := range countryCount {
 		pairs = append(pairs, countryPair{country, count})
 	}
-	
+
 	// Simple bubble sort
 	for i := 0; i < len(pairs); i++ {
 		for j := i + 1; j < len(pairs); j++ {
@@ -411,12 +411,12 @@ func getTopCountries(countryCount map[string]int, limit int) []string {
 			}
 		}
 	}
-	
+
 	result := []string{}
 	for i := 0; i < limit && i < len(pairs); i++ {
 		result = append(result, pairs[i].country)
 	}
-	
+
 	return result
 }
 
