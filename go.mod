@@ -1,3 +1,3 @@
-module go-wasm-bridge
+module go-wasm-demo
 
-go 1.23.0
+go 1.23

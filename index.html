@@ -282,7 +282,7 @@
                             <input type="checkbox" id="userPremium"> Premium Member
                         </label>
                     </div>
-                    <button onclick="validateUserWasm()">
+                    <button onclick="validateUserWasmButton()">
                         <span class="badge wasm">WASM</span> Validate Client-Side
                     </button>
                     <button class="server" onclick="validateUserServer()">
@@ -323,7 +323,7 @@
                             <input type="checkbox" id="productInStock" checked> In Stock
                         </label>
                     </div>
-                    <button onclick="validateProductWasm()">
+                    <button onclick="validateProductWasmButton()">
                         <span class="badge wasm">WASM</span> Validate Client-Side
                     </button>
                     <button class="server" onclick="validateProductServer()">
@@ -353,7 +353,7 @@
                         <label>Quantities:</label>
                         <input type="text" id="orderQuantities" placeholder="[1, 2]" value="[1, 2]">
                     </div>
-                    <button onclick="calculateOrderWasm()">
+                    <button onclick="calculateOrderWasmButton()">
                         <span class="badge wasm">WASM</span> Calculate Client-Side
                     </button>
                     <button class="server" onclick="calculateOrderServer()">
@@ -365,7 +365,7 @@
                 <div class="demo-panel">
                     <h3>🎯 Product Recommendations</h3>
                     <p>Advanced recommendation algorithm using user demographics and purchase patterns:</p>
-                    <button onclick="getRecommendationsWasm()">
+                    <button onclick="getRecommendationsWasmButton()">
                         <span class="badge wasm">WASM</span> Get Recommendations (Client)
                     </button>
                     <button class="server" onclick="getRecommendationsServer()">
@@ -423,8 +423,8 @@
                 </div>
                 
                 <div class="benchmark-card">
-                    <h4>🔐 Cryptographic Hashing</h4>
-                    <p>Security and data integrity operations</p>
+                    <h4>🔐 Simple Hash Function</h4>
+                    <p>Fast hash computation benchmark</p>
                     <div class="form-group">
                         <label>Hash Count:</label>
                         <select id="hashCount">
@@ -485,6 +485,7 @@
     </div>
 
     <script src="wasm_exec.js"></script>
+    <script src="benchmarks_optimized.js"></script>
     <script>
         let wasmReady = false;
         
@@ -508,7 +509,7 @@
         ];
 
         // User validation functions
-        function validateUserWasm() {
+        function validateUserWasmButton() {
             if (!wasmReady) {
                 document.getElementById('userResults').className = 'results error';
                 document.getElementById('userResults').textContent = 'WebAssembly not ready yet. Please wait...';
@@ -524,8 +525,9 @@
             };
 
             try {
-                const result = validateUserWasm(JSON.stringify(user));
-                displayResult('userResults', result, '🌐 WebAssembly Client-Side Validation');
+                const result = window.validateUserWasm(JSON.stringify(user));
+                const parsedResult = (typeof result === 'string') ? JSON.parse(result) : result;
+                displayResult('userResults', parsedResult, '🌐 WebAssembly Client-Side Validation');
             } catch (error) {
                 displayError('userResults', error);
             }
@@ -551,7 +553,7 @@
         }
 
         // Product validation functions
-        function validateProductWasm() {
+        function validateProductWasmButton() {
             if (!wasmReady) {
                 document.getElementById('productResults').className = 'results error';
                 document.getElementById('productResults').textContent = 'WebAssembly not ready yet. Please wait...';
@@ -567,8 +569,9 @@
             };
 
             try {
-                const result = validateProductWasm(JSON.stringify(product));
-                displayResult('productResults', result, '🌐 WebAssembly Client-Side Validation');
+                const result = window.validateProductWasm(JSON.stringify(product));
+                const parsedResult = (typeof result === 'string') ? JSON.parse(result) : result;
+                displayResult('productResults', parsedResult, '🌐 WebAssembly Client-Side Validation');
             } catch (error) {
                 displayError('productResults', error);
             }
@@ -594,7 +597,7 @@
         }
 
         // Order calculation functions
-        function calculateOrderWasm() {
+        function calculateOrderWasmButton() {
             if (!wasmReady) {
                 document.getElementById('orderResults').className = 'results error';
                 document.getElementById('orderResults').textContent = 'WebAssembly not ready yet. Please wait...';
@@ -611,8 +614,9 @@
                     quantities: quantities
                 };
 
-                const result = calculateOrderTotalWasm(JSON.stringify(order), JSON.stringify(user));
-                displayOrderResult('orderResults', result, '🌐 WebAssembly Client-Side Calculation');
+                const result = window.calculateOrderTotalWasm(JSON.stringify(order), JSON.stringify(user));
+                const parsedResult = (typeof result === 'string') ? JSON.parse(result) : result;
+                displayOrderResult('orderResults', parsedResult, '🌐 WebAssembly Client-Side Calculation');
             } catch (error) {
                 displayError('orderResults', error);
             }
@@ -646,7 +650,7 @@
         }
 
         // Recommendation functions
-        function getRecommendationsWasm() {
+        function getRecommendationsWasmButton() {
             if (!wasmReady) {
                 document.getElementById('recommendationResults').className = 'results error';
                 document.getElementById('recommendationResults').textContent = 'WebAssembly not ready yet. Please wait...';
@@ -658,13 +662,14 @@
                 const products = demoProducts;
                 const order = { products: JSON.parse(document.getElementById('orderProducts').value) };
                 
-                const result = recommendProductsWasm(
+                const result = window.recommendProductsWasm(
                     JSON.stringify(user),
                     JSON.stringify(products),
                     JSON.stringify(order)
                 );
                 
-                displayRecommendations('recommendationResults', result, '🌐 WebAssembly Client-Side Recommendations');
+                const parsedResult = (typeof result === 'string') ? JSON.parse(result) : result;
+                displayRecommendations('recommendationResults', parsedResult, '🌐 WebAssembly Client-Side Recommendations');
             } catch (error) {
                 displayError('recommendationResults', error);
             }
@@ -701,33 +706,39 @@
             document.getElementById('matrixResults').className = 'results info';
             document.getElementById('matrixResults').textContent = 'Running matrix multiplication benchmark...\n';
             
-            // JavaScript benchmark
-            const jsStart = performance.now();
-            const matrixA = new Array(size * size).fill(0).map((_, i) => i % 10);
-            const matrixB = new Array(size * size).fill(0).map((_, i) => (i * 2) % 10);
-            const jsResult = new Array(size * size).fill(0);
-            
-            for (let i = 0; i < size; i++) {
-                for (let k = 0; k < size; k++) {
-                    const aik = matrixA[i * size + k];
-                    for (let j = 0; j < size; j++) {
-                        jsResult[i * size + j] += aik * matrixB[k * size + j];
-                    }
-                }
+            // Create test matrices using typed arrays for fair comparison
+            const matrixA = new Float64Array(size * size);
+            const matrixB = new Float64Array(size * size);
+            for (let i = 0; i < size * size; i++) {
+                matrixA[i] = i % 10;
+                matrixB[i] = (i * 2) % 10;
             }
-            const jsDuration = performance.now() - jsStart;
             
-            // WebAssembly benchmark
+            // JavaScript benchmark (5 runs for average)
+            let jsTotalTime = 0;
+            for (let run = 0; run < 5; run++) {
+                const jsStart = performance.now();
+                const jsResult = matrixMultiplyJSOptimized(matrixA, matrixB, size);
+                jsTotalTime += performance.now() - jsStart;
+            }
+            const jsDuration = jsTotalTime / 5;
+            
+            // WebAssembly benchmark (5 runs for average)
             if (wasmReady) {
-                const wasmStart = performance.now();
-                const wasmResult = matrixMultiplyWasm(matrixA, matrixB, size);
-                const wasmDuration = performance.now() - wasmStart;
+                let wasmTotalTime = 0;
+                for (let run = 0; run < 5; run++) {
+                    const wasmStart = performance.now();
+                    const wasmResult = matrixMultiplyWasm(matrixA, matrixB, size);
+                    wasmTotalTime += performance.now() - wasmStart;
+                }
+                const wasmDuration = wasmTotalTime / 5;
                 
                 const speedup = (jsDuration / wasmDuration).toFixed(1);
-                document.getElementById('matrixResults').textContent += 
-                    `JavaScript: ${jsDuration.toFixed(2)}ms\n` +
-                    `WebAssembly: ${wasmDuration.toFixed(2)}ms\n` +
-                    `Speedup: ${speedup}x faster with WebAssembly`;
+                document.getElementById('matrixResults').textContent = 
+                    `Matrix Multiplication (${size}x${size})\n` +
+                    `JavaScript: ${jsDuration.toFixed(2)}ms (average of 5 runs)\n` +
+                    `WebAssembly: ${wasmDuration.toFixed(2)}ms (average of 5 runs)\n` +
+                    `Result: ${speedup}x ${speedup >= 1 ? 'faster' : 'slower'} with WebAssembly`;
                     
                 displayPerformanceComparison('matrixComparison', jsDuration, wasmDuration);
             }
@@ -740,22 +751,31 @@
             document.getElementById('mandelbrotResults').className = 'results info';
             document.getElementById('mandelbrotResults').textContent = 'Running Mandelbrot set benchmark...\n';
             
-            // JavaScript benchmark
-            const jsStart = performance.now();
-            const jsResult = mandelbrotJS(width, height, -2, 1, -1.5, 1.5, iterations);
-            const jsDuration = performance.now() - jsStart;
+            // JavaScript benchmark (5 runs for average)
+            let jsTotalTime = 0;
+            for (let run = 0; run < 5; run++) {
+                const jsStart = performance.now();
+                const jsResult = mandelbrotJSOptimized(width, height, -2, 1, -1.5, 1.5, iterations);
+                jsTotalTime += performance.now() - jsStart;
+            }
+            const jsDuration = jsTotalTime / 5;
             
-            // WebAssembly benchmark
+            // WebAssembly benchmark (5 runs for average)
             if (wasmReady) {
-                const wasmStart = performance.now();
-                const wasmResult = mandelbrotWasm(width, height, -2, 1, -1.5, 1.5, iterations);
-                const wasmDuration = performance.now() - wasmStart;
+                let wasmTotalTime = 0;
+                for (let run = 0; run < 5; run++) {
+                    const wasmStart = performance.now();
+                    const wasmResult = mandelbrotWasm(width, height, -2, 1, -1.5, 1.5, iterations);
+                    wasmTotalTime += performance.now() - wasmStart;
+                }
+                const wasmDuration = wasmTotalTime / 5;
                 
                 const speedup = (jsDuration / wasmDuration).toFixed(1);
-                document.getElementById('mandelbrotResults').textContent += 
-                    `JavaScript: ${jsDuration.toFixed(2)}ms\n` +
-                    `WebAssembly: ${wasmDuration.toFixed(2)}ms\n` +
-                    `Speedup: ${speedup}x faster with WebAssembly`;
+                document.getElementById('mandelbrotResults').textContent = 
+                    `Mandelbrot Set (${width}x${height}, ${iterations} iterations)\n` +
+                    `JavaScript: ${jsDuration.toFixed(2)}ms (average of 5 runs)\n` +
+                    `WebAssembly: ${wasmDuration.toFixed(2)}ms (average of 5 runs)\n` +
+                    `Result: ${speedup}x ${speedup >= 1 ? 'faster' : 'slower'} with WebAssembly`;
                     
                 displayPerformanceComparison('mandelbrotComparison', jsDuration, wasmDuration);
             }
@@ -764,63 +784,41 @@
         function benchmarkHash() {
             const count = parseInt(document.getElementById('hashCount').value);
             document.getElementById('hashResults').className = 'results info';
-            document.getElementById('hashResults').textContent = 'Running hash benchmark...\n';
+            document.getElementById('hashResults').textContent = 'Running simple hash benchmark...\n';
             
-            // JavaScript benchmark
-            const jsStart = performance.now();
             const data = "WebAssembly performance test data";
-            let jsHash = 0x12345678;
-            for (let iter = 0; iter < count; iter++) {
-                for (let i = 0; i < data.length; i++) {
-                    jsHash = jsHash * 33 + data.charCodeAt(i);
-                    jsHash = (jsHash << 5) | (jsHash >>> 27);
-                }
-            }
-            const jsDuration = performance.now() - jsStart;
             
-            // WebAssembly benchmark
+            // JavaScript benchmark (5 runs for average)
+            let jsTotalTime = 0;
+            for (let run = 0; run < 5; run++) {
+                const jsStart = performance.now();
+                const jsHash = sha256HashJSOptimized(data, count);
+                jsTotalTime += performance.now() - jsStart;
+            }
+            const jsDuration = jsTotalTime / 5;
+            
+            // WebAssembly benchmark (5 runs for average)
             if (wasmReady) {
-                const wasmStart = performance.now();
-                const wasmHash = sha256HashWasm(data, count);
-                const wasmDuration = performance.now() - wasmStart;
+                let wasmTotalTime = 0;
+                for (let run = 0; run < 5; run++) {
+                    const wasmStart = performance.now();
+                    const wasmHash = sha256HashWasm(data, count);
+                    wasmTotalTime += performance.now() - wasmStart;
+                }
+                const wasmDuration = wasmTotalTime / 5;
                 
                 const speedup = (jsDuration / wasmDuration).toFixed(1);
-                document.getElementById('hashResults').textContent += 
-                    `JavaScript: ${jsDuration.toFixed(2)}ms\n` +
-                    `WebAssembly: ${wasmDuration.toFixed(2)}ms\n` +
-                    `Speedup: ${speedup}x faster with WebAssembly`;
+                document.getElementById('hashResults').textContent = 
+                    `Simple Hash Function (${count.toLocaleString()} iterations)\n` +
+                    `JavaScript: ${jsDuration.toFixed(2)}ms (average of 5 runs)\n` +
+                    `WebAssembly: ${wasmDuration.toFixed(2)}ms (average of 5 runs)\n` +
+                    `Result: ${speedup}x ${speedup >= 1 ? 'faster' : 'slower'} with WebAssembly`;
                     
                 displayPerformanceComparison('hashComparison', jsDuration, wasmDuration);
             }
         }
 
-        // JavaScript implementation of Mandelbrot for comparison
-        function mandelbrotJS(width, height, xmin, xmax, ymin, ymax, maxIter) {
-            const result = new Array(width * height);
-            const dx = (xmax - xmin) / width;
-            const dy = (ymax - ymin) / height;
-            
-            let idx = 0;
-            for (let py = 0; py < height; py++) {
-                const cy = ymin + py * dy;
-                for (let px = 0; px < width; px++) {
-                    const cx = xmin + px * dx;
-                    
-                    let zx = 0, zy = 0;
-                    let iter = 0;
-                    
-                    while (iter < maxIter && zx * zx + zy * zy <= 4) {
-                        const newZy = 2 * zx * zy + cy;
-                        zx = zx * zx - zy * zy + cx;
-                        zy = newZy;
-                        iter++;
-                    }
-                    
-                    result[idx++] = iter;
-                }
-            }
-            return result;
-        }
+
 
         // Helper functions
         function getCurrentUser() {
@@ -879,6 +877,14 @@
             const jsPercent = (jsDuration / maxDuration) * 100;
             const wasmPercent = (wasmDuration / maxDuration) * 100;
             
+            const speedupRatio = jsDuration / wasmDuration;
+            const isWasmFaster = wasmDuration < jsDuration;
+            const winner = isWasmFaster ? 'WebAssembly' : 'JavaScript';
+            const speedupText = isWasmFaster ? 
+                `${speedupRatio.toFixed(1)}x faster with WebAssembly!` :
+                `${(1/speedupRatio).toFixed(1)}x faster with JavaScript (WebAssembly is slower)`;
+            const speedupColor = isWasmFaster ? '#27ae60' : '#e74c3c';
+            
             document.getElementById(elementId).innerHTML = `
                 <div>JavaScript: ${jsDuration.toFixed(2)}ms</div>
                 <div class="performance-bar">
@@ -890,8 +896,8 @@
                     <div class="performance-fill wasm" style="width: ${wasmPercent}%"></div>
                     <div class="performance-label">WebAssembly</div>
                 </div>
-                <div style="text-align: center; margin-top: 10px; font-weight: 600; color: #27ae60;">
-                    ${(jsDuration / wasmDuration).toFixed(1)}x faster with WebAssembly!
+                <div style="text-align: center; margin-top: 10px; font-weight: 600; color: ${speedupColor};">
+                    Winner: ${winner} - ${speedupText}
                 </div>
             `;
         }

@@ -3,6 +3,7 @@
 <head>
     <title>Quick Performance Test</title>
     <script src="wasm_exec.js"></script>
+    <script src="benchmarks_optimized.js"></script>
 </head>
 <body>
     <h1>Quick WASM vs JS Test</h1>
@@ -11,33 +12,7 @@
     <script>
         let wasmReady = false;
 
-        // Simple JavaScript implementation
-        function mandelbrotJS(width, height, xmin, xmax, ymin, ymax, maxIter) {
-            const result = [];
-            const dx = (xmax - xmin) / width;
-            const dy = (ymax - ymin) / height;
-            
-            for (let py = 0; py < height; py++) {
-                const y = ymin + py * dy;
-                for (let px = 0; px < width; px++) {
-                    const x = xmin + px * dx;
-                    
-                    let zx = 0, zy = 0;
-                    let iter = 0;
-                    
-                    while (iter < maxIter && zx*zx + zy*zy < 4.0) {
-                        const newZy = 2 * zx * zy + y;
-                        zx = zx*zx - zy*zy + x;
-                        zy = newZy;
-                        iter++;
-                    }
-                    
-                    result.push(iter);
-                }
-            }
-            
-            return result;
-        }
+
 
         async function runTest() {
             if (!wasmReady) {
@@ -56,7 +31,7 @@
             let jsTimes = [];
             for (let i = 0; i < 5; i++) {
                 const start = performance.now();
-                mandelbrotJS(width, height, xmin, xmax, ymin, ymax, maxIter);
+                mandelbrotJSOptimized(width, height, xmin, xmax, ymin, ymax, maxIter);
                 jsTimes.push(performance.now() - start);
             }
 

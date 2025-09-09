@@ -11,7 +11,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}📦 Building WebAssembly module...${NC}"
-GOOS=js GOARCH=wasm go build -o main.wasm main_wasm.go shared_models.go benchmarks.go mandelbrot.go
+GOOS=js GOARCH=wasm go build -o main.wasm main_wasm.go shared_models.go benchmarks.go benchmarks_wasm.go mandelbrot.go
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ WebAssembly module built successfully: main.wasm${NC}"
@@ -42,7 +42,7 @@ echo "   ${BLUE}http://localhost:8080/${NC} - WebAssembly client demo"
 echo "   ${BLUE}http://localhost:8080/server.html${NC} - Server API demo"
 echo ""
 echo -e "${YELLOW}🔧 Development Commands:${NC}"
-echo "• Rebuild WebAssembly: ${BLUE}GOOS=js GOARCH=wasm go build -o main.wasm main_wasm.go shared_models.go benchmarks.go mandelbrot.go${NC}"
+echo "• Rebuild WebAssembly: ${BLUE}GOOS=js GOARCH=wasm go build -o main.wasm main_wasm.go shared_models.go benchmarks.go benchmarks_wasm.go mandelbrot.go${NC}"
 echo "• Rebuild Server: ${BLUE}go build -o server main_server.go shared_models.go benchmarks.go${NC}"
 echo "• Run directly: ${BLUE}go run main_server.go shared_models.go benchmarks.go${NC}"
 echo ""

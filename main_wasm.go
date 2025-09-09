@@ -16,9 +16,9 @@ func main() {
 	js.Global().Set("analyzeUserBehaviorWasm", js.FuncOf(analyzeUserBehaviorWasm))
 
 	// Performance benchmark functions
-	js.Global().Set("mandelbrotWasm", js.FuncOf(mandelbrotWasmUltra))
-	js.Global().Set("matrixMultiplyWasm", js.FuncOf(matrixMultiplyWasm))
-	js.Global().Set("sha256HashWasm", js.FuncOf(sha256HashWasm))
+	js.Global().Set("mandelbrotWasm", js.FuncOf(mandelbrotWasmSuperOptimized))
+	js.Global().Set("matrixMultiplyWasm", js.FuncOf(matrixMultiplyWasmOptimized))
+	js.Global().Set("sha256HashWasm", js.FuncOf(sha256HashWasmOptimized))
 	js.Global().Set("rayTracingWasm", js.FuncOf(rayTracingWasm))
 
 	// Keep the program running
@@ -48,9 +48,15 @@ func validateUserWasm(this js.Value, args []js.Value) interface{} {
 	result := ValidateUser(user)
 
 	// Convert back to JavaScript-compatible format
+	// Convert errors slice to JavaScript array
+	jsErrors := make([]interface{}, len(result.Errors))
+	for i, err := range result.Errors {
+		jsErrors[i] = err
+	}
+	
 	return map[string]interface{}{
 		"valid":  result.Valid,
-		"errors": result.Errors,
+		"errors": jsErrors,
 	}
 }
 
@@ -74,9 +80,15 @@ func validateProductWasm(this js.Value, args []js.Value) interface{} {
 
 	result := ValidateProduct(product)
 
+	// Convert errors slice to JavaScript array
+	jsErrors := make([]interface{}, len(result.Errors))
+	for i, err := range result.Errors {
+		jsErrors[i] = err
+	}
+	
 	return map[string]interface{}{
 		"valid":  result.Valid,
-		"errors": result.Errors,
+		"errors": jsErrors,
 	}
 }
 

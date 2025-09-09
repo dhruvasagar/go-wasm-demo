@@ -33,16 +33,20 @@ func main() {
 	http.HandleFunc("/api/benchmark/mandelbrot", handleMandelbrotBenchmark)
 	http.HandleFunc("/api/benchmark/hash", handleHashBenchmark)
 
-	fmt.Println("🚀 Server starting on http://localhost:8080")
+	fmt.Println("🚀 Server starting on http://localhost:8181")
 	fmt.Println("📊 Visit /server.html for server-side demo")
 	fmt.Println("🌐 Visit / for WebAssembly demo")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8181", nil))
 }
 
 func serveStaticFile(w http.ResponseWriter, r *http.Request) {
+	// Handle root path
 	if r.URL.Path == "/" {
-		r.URL.Path = "/index.html"
+		http.ServeFile(w, r, "./index.html")
+		return
 	}
+
+	// Serve other static files
 	http.ServeFile(w, r, "."+r.URL.Path)
 }
 
