@@ -414,7 +414,7 @@ for _, resource := range resources {
 **Q: "What about bundle size? Isn't WASM bigger than JavaScript?"**
 A: "Yes, our WASM file is ~2MB, but it replaces potentially thousands of lines of duplicated logic. Plus, it compresses well and enables offline functionality. It's about value, not just size."
 
-**Q: "How do you handle debugging WASM?"**  
+**Q: "How do you handle debugging WASM?"**
 A: "Debug your business logic in Go with excellent tooling, then deploy to WASM. Most bugs happen in business logic, not the WASM boundary. We test our shared_models.go with standard Go tests."
 
 **Q: "What about browser compatibility?"**
