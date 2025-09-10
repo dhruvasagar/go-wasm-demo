@@ -5,6 +5,44 @@
 
 ---
 
+## What You'll Master Today 🎯
+
+By the end of this presentation, you'll understand:
+
+### 🔍 **The Problem We Solve**
+- Why code duplication across frontend/backend is a developer nightmare
+- Real costs of maintaining business logic in multiple languages
+- The "validation drift" problem that breaks production systems
+
+### 🧠 **WebAssembly Fundamentals** 
+- What WebAssembly actually is (and isn't) in plain English
+- How Go compiles to run natively in browsers
+- When to choose WASM vs JavaScript (with honest benchmarks)
+
+### 🛠️ **Practical Implementation**
+- Live demo: 400+ lines of identical Go business logic running in browser & server
+- Real performance comparisons with transparent results
+- Project structure and build process you can use immediately
+
+### 🚀 **Real-World Applications**
+- E-commerce validation, tax calculations, recommendation algorithms
+- Offline-first architecture possibilities
+- Production-ready patterns and best practices
+
+### 📈 **Performance Reality Check**
+- Honest benchmarks: when WASM wins (and when JavaScript is faster!)
+- Optimization techniques that matter
+- Why consistency sometimes trumps raw speed
+
+### 🎯 **Your Next Steps**
+- Decision framework: when to use WebAssembly in your projects
+- Ready-to-clone repository with working examples
+- Resources to continue your WebAssembly journey
+
+**Promise:** You'll leave with working code, realistic expectations, and the confidence to implement WebAssembly in your own projects! 💪
+
+---
+
 ## Act I: The Great Code Duplication Disaster of 2024 🎭
 
 ### Scene 1: Meet Alex, Our Hero
@@ -57,13 +95,31 @@ function validateEmail(email) {
 
 ## Act II: The WebAssembly Awakening 🌟
 
-### Scene 3: Wait, What is WebAssembly? 🤔
+### Scene 3: The Discovery
+
+*Alex discovers WebAssembly while doom-scrolling tech Twitter at 2 AM*
+
+**Tweet:** "Just compiled my entire Go backend to run in the browser. My users think I'm a wizard. 🧙‍♂️ #WebAssembly"
+
+**Alex (sitting up suddenly):** "Wait... WHAT?!"
+
+### The Revelation:
+- 🎯 Write business logic ONCE in Go
+- 🚀 Compile to WebAssembly
+- 🌍 Run EVERYWHERE (browser, server, edge)
+- 😴 Sleep peacefully knowing your validation logic is consistent
+
+> **Presenter Notes:** This is where you can show the live demo! Open `index.html` and demonstrate the user validation working identically on both client (WASM) and server (API). Say: "Watch this - I'm going to enter the same invalid email and see identical error messages from both environments." Use test data: email="invalid", name="X", age=150, country="" to trigger multiple validation errors.
+
+---
+
+### Scene 4: Wait, What is WebAssembly? 🤔
 
 *For those hearing "WebAssembly" for the first time*
 
 **Confused Developer in Audience:** "Hold up... what exactly IS WebAssembly?"
 
-**Alex (turning to audience):** "Great question! Let me break it down..."
+**Alex (turning to audience):** "Great question! After staying up until 4 AM researching that tweet, let me break it down..."
 
 #### WebAssembly in 60 Seconds:
 
@@ -96,27 +152,9 @@ Go/Rust/C++ ──► WebAssembly ──► Browser
 - JavaScript is like hiring a local translator who's really good at talking to browsers
 - WebAssembly is like bringing your own expert who speaks the universal language of computing
 
-**Alex:** "So when that tweet said 'compiled my Go backend to run in browser'... they literally meant it!"
+**Alex:** "So that tweet wasn't kidding - they literally compiled Go backend code to run in the browser!"
 
 > **Presenter Notes:** This is the perfect place to show a quick live demo. Open the browser dev tools and show `window.validateUserWasm` existing - actual Go function callable from JavaScript! Then run it: `window.validateUserWasm('{"email":"test","name":"","age":5,"country":""}')` to show Go validation running in the browser. This "aha moment" is when WebAssembly clicks for most people.
-
----
-
-### Scene 4: The Discovery
-
-*Alex discovers WebAssembly while doom-scrolling tech Twitter at 2 AM*
-
-**Tweet:** "Just compiled my entire Go backend to run in the browser. My users think I'm a wizard. 🧙‍♂️ #WebAssembly"
-
-**Alex (sitting up suddenly):** "Wait... WHAT?!"
-
-### The Revelation:
-- 🎯 Write business logic ONCE in Go
-- 🚀 Compile to WebAssembly
-- 🌍 Run EVERYWHERE (browser, server, edge)
-- 😴 Sleep peacefully knowing your validation logic is consistent
-
-> **Presenter Notes:** This is where you can show the live demo! Open `index.html` and demonstrate the user validation working identically on both client (WASM) and server (API). Say: "Watch this - I'm going to enter the same invalid email and see identical error messages from both environments." Use test data: email="invalid", name="X", age=150, country="" to trigger multiple validation errors.
 
 ---
 
