@@ -69,16 +69,16 @@ func fastSqrt(x float64) float64 {
 
 // Shared constants for ray tracing
 const (
-	SphereX        = 0.0
-	SphereY        = 0.0
-	SphereZ        = -5.0
-	SphereRadius2  = 1.0
-	LightX         = -0.57735027
-	LightY         = -0.57735027  
-	LightZ         = -0.57735027
-	BackgroundR    = 0.2
-	BackgroundG    = 0.2
-	BackgroundB    = 0.8
+	SphereX       = 0.0
+	SphereY       = 0.0
+	SphereZ       = -5.0
+	SphereRadius2 = 1.0
+	LightX        = -0.57735027
+	LightY        = -0.57735027
+	LightZ        = -0.57735027
+	BackgroundR   = 0.2
+	BackgroundG   = 0.2
+	BackgroundB   = 0.8
 )
 
 // Shared ray tracing core computation (fully inlined for performance)

@@ -366,9 +366,9 @@ func traceRayOptimized(ox, oy, oz, dx, dy, dz float64) [3]float64 {
 	// This is a simplified adapter - in practice, you'd want proper coordinate conversion
 	nx := ox // Simplified mapping
 	ny := oy
-	
+
 	colorR, colorG, colorB := computeRayColor(nx, ny, 1) // Single sample
-	
+
 	return [3]float64{colorR, colorG, colorB}
 }
 
