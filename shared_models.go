@@ -330,7 +330,7 @@ func getAverageProductPrice(order Order) float64 {
 
 	total := 0.0
 	validProducts := 0
-	
+
 	for _, product := range order.Products {
 		// Only include products with valid prices
 		if product.Price > 0 {

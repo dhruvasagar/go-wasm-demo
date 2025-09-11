@@ -7,7 +7,6 @@ import (
 	"runtime"
 	"sync"
 	"syscall/js"
-	"unsafe"
 )
 
 // ============================================================================
@@ -103,12 +102,8 @@ func mandelbrotWasmSingle(this js.Value, args []js.Value) interface{} {
 		}
 	}
 
-	jsArray := js.Global().Get("Int32Array").New(pixels)
-	for i := 0; i < pixels; i++ {
-		jsArray.SetIndex(i, js.ValueOf(result[i]))
-	}
-
-	return jsArray
+	// Use shared conversion function for efficient result conversion
+	return createInt32TypedArray(result)
 }
 
 // Single-threaded hash computation
@@ -140,158 +135,14 @@ func rayTracingWasmSingle(this js.Value, args []js.Value) interface{} {
 	height := args[1].Int()
 	samples := args[2].Int()
 
-	result := make([]float64, width*height*3)
+	// Use shared implementation to avoid code duplication
+	result := rayTracingSharedSingle(width, height, samples)
 
-	// Sphere properties (same as JavaScript)
-	const sphereX, sphereY, sphereZ = 0.0, 0.0, -5.0
-	const sphereRadius2 = 1.0
-
-	// Light direction (same as JavaScript)
-	const lightX, lightY, lightZ = -0.57735027, -0.57735027, -0.57735027
-
-	for y := 0; y < height; y++ {
-		ny := (float64(y)/float64(height))*2.0 - 1.0
-
-		for x := 0; x < width; x++ {
-			nx := (float64(x)/float64(width))*2.0 - 1.0
-
-			var colorR, colorG, colorB float64
-
-			for s := 0; s < samples; s++ {
-				// FULLY INLINED: Ray direction normalization (no function calls)
-				rayLenSq := nx*nx + ny*ny + 1.0
-
-				// Inlined fast square root (Newton-Raphson, 2 iterations)
-				var rayLen float64
-				if rayLenSq <= 0 {
-					rayLen = 0
-				} else if rayLenSq == 1 {
-					rayLen = 1
-				} else {
-					guess := rayLenSq * 0.5
-					guess = 0.5 * (guess + rayLenSq/guess)
-					rayLen = 0.5 * (guess + rayLenSq/guess)
-				}
-
-				invRayLen := 1.0 / rayLen
-				dirX := nx * invRayLen
-				dirY := ny * invRayLen
-				dirZ := -1.0 * invRayLen
-
-				// FULLY INLINED: Ray-sphere intersection
-				ocX := 0.0 - sphereX
-				ocY := 0.0 - sphereY
-				ocZ := 0.0 - sphereZ
-
-				rayA := dirX*dirX + dirY*dirY + dirZ*dirZ
-				rayB := 2.0 * (ocX*dirX + ocY*dirY + ocZ*dirZ)
-				rayC := ocX*ocX + ocY*ocY + ocZ*ocZ - sphereRadius2
-
-				discriminant := rayB*rayB - 4.0*rayA*rayC
-
-				if discriminant < 0 {
-					// Background color
-					colorR += 0.2
-					colorG += 0.2
-					colorB += 0.8
-				} else {
-					// Hit the sphere - inlined square root
-					var sqrtDisc float64
-					if discriminant <= 0 {
-						sqrtDisc = 0
-					} else if discriminant == 1 {
-						sqrtDisc = 1
-					} else {
-						guess := discriminant * 0.5
-						guess = 0.5 * (guess + discriminant/guess)
-						sqrtDisc = 0.5 * (guess + discriminant/guess)
-					}
-
-					t := (-rayB - sqrtDisc) / (2.0 * rayA)
-					if t < 0 {
-						t = (-rayB + sqrtDisc) / (2.0 * rayA)
-					}
-
-					if t < 0 {
-						// Behind camera
-						colorR += 0.2
-						colorG += 0.2
-						colorB += 0.8
-					} else {
-						// FULLY INLINED: Calculate intersection point, normal, and lighting
-						ix := 0.0 + t*dirX
-						iy := 0.0 + t*dirY
-						iz := 0.0 + t*dirZ
-
-						normalX := ix - sphereX
-						normalY := iy - sphereY
-						normalZ := iz - sphereZ
-
-						// Inlined max(0, dot) - no function call
-						dot := normalX*lightX + normalY*lightY + normalZ*lightZ
-						var intensity float64
-						if dot > 0.0 {
-							intensity = dot
-						} else {
-							intensity = 0.0
-						}
-
-						baseColor := 0.2 + 0.8*intensity
-						colorR += baseColor * 1.0
-						colorG += baseColor * 0.7
-						colorB += baseColor * 0.3
-					}
-				}
-			}
-
-			invSamples := 1.0 / float64(samples)
-			idx := (y*width + x) * 3
-			result[idx] = colorR * invSamples
-			result[idx+1] = colorG * invSamples
-			result[idx+2] = colorB * invSamples
-		}
-	}
-
-	// Efficient bulk copy
-	resultTyped := js.Global().Get("Float64Array").New(len(result))
-	arrayBuffer := resultTyped.Get("buffer")
-	uint8View := js.Global().Get("Uint8Array").New(arrayBuffer)
-
-	js.CopyBytesToJS(
-		uint8View,
-		unsafe.Slice((*byte)(unsafe.Pointer(&result[0])), len(result)*8),
-	)
-
-	return resultTyped
+	// Return result using shared conversion function
+	return createFloat64TypedArray(result)
 }
 
-// Fast square root approximation (avoids math.Sqrt overhead)
-func fastSqrt(x float64) float64 {
-	if x <= 0 {
-		return 0
-	}
-	if x == 1 {
-		return 1
-	}
-
-	// Better initial guess
-	var guess float64
-	if x >= 1 {
-		guess = x * 0.5
-	} else {
-		guess = (x + 1) * 0.5
-	}
-
-	// 3 iterations is usually enough for good precision
-	for i := 0; i < 3; i++ {
-		if guess == 0 {
-			break
-		}
-		guess = 0.5 * (guess + x/guess)
-	}
-
-	return guess
-}
+// Note: fastSqrt function moved to benchmarks_shared.go to avoid duplication
 
 // ============================================================================
 // ENHANCED CONCURRENT IMPLEMENTATIONS
@@ -328,7 +179,7 @@ func matrixMultiplyWasmConcurrentV2(this js.Value, args []js.Value) interface{} 
 	if size < 100 {
 		numWorkers = 2
 	} else if size > 1000 {
-		numWorkers = min(numWorkers, 8) // Cap workers for very large matrices
+		numWorkers = minInt(numWorkers, 8) // Cap workers for very large matrices
 	}
 
 	// Dynamic chunk size based on matrix size and worker count
@@ -353,7 +204,7 @@ func matrixMultiplyWasmConcurrentV2(this js.Value, args []js.Value) interface{} 
 	go func() {
 		defer close(workChan)
 		for row := 0; row < size; row += chunkSize {
-			endRow := min(row+chunkSize, size)
+			endRow := minInt(row+chunkSize, size)
 			workChan <- matrixWorkChunk{startRow: row, endRow: endRow}
 		}
 	}()
@@ -439,19 +290,15 @@ func mandelbrotWasmConcurrentV2(this js.Value, args []js.Value) interface{} {
 	go func() {
 		defer close(workChan)
 		for y := 0; y < height; y += chunkHeight {
-			endY := min(y+chunkHeight, height)
+			endY := minInt(y+chunkHeight, height)
 			workChan <- mandelbrotChunk{startY: y, endY: endY}
 		}
 	}()
 
 	wg.Wait()
 
-	jsArray := js.Global().Get("Int32Array").New(pixels)
-	for i := 0; i < pixels; i++ {
-		jsArray.SetIndex(i, js.ValueOf(result[i]))
-	}
-
-	return jsArray
+	// Use shared conversion function for efficient result conversion
+	return createInt32TypedArray(result)
 }
 
 func mandelbrotChunkWorkerV2(workChan <-chan mandelbrotChunk, wg *sync.WaitGroup, result []int32, width int, dx, dy, xmin, ymin float64, maxIter int) {
@@ -490,7 +337,7 @@ func mandelbrotChunkWorkerV2(workChan <-chan mandelbrotChunk, wg *sync.WaitGroup
 	}
 }
 
-// Enhanced concurrent hash computation with better work distribution
+// OPTIMIZED concurrent hash computation - eliminates most overhead
 func sha256HashWasmConcurrentV2(this js.Value, args []js.Value) interface{} {
 	if len(args) < 2 {
 		return js.ValueOf(0)
@@ -499,72 +346,100 @@ func sha256HashWasmConcurrentV2(this js.Value, args []js.Value) interface{} {
 	data := args[0].String()
 	iterations := args[1].Int()
 
+	// CRITICAL: Only use concurrency if the workload is large enough
+	// Threshold determined by benchmarking - below this, single-threaded is faster
+	const concurrencyThreshold = 50000
+	if iterations < concurrencyThreshold {
+		// Fall back to optimized single-threaded version for small workloads
+		return sha256HashWasmSingle(js.Value{}, args)
+	}
+
+	// Smart worker count: use fewer workers to reduce overhead
 	numWorkers := runtime.GOMAXPROCS(0)
 	if numWorkers < 1 {
 		numWorkers = 4
 	}
+	if numWorkers > 8 {
+		numWorkers = 8 // Cap at 8 workers - diminishing returns beyond this
+	}
 
-	// Better work distribution - avoid integer division issues
+	// Pre-convert string to bytes once (major optimization)
+	dataBytes := []byte(data)
+	dataLen := len(dataBytes)
+
+	// Pre-allocate result array to avoid channel overhead
+	results := make([]uint32, numWorkers)
+	var wg sync.WaitGroup
+
+	// Distribute work evenly with larger chunks
 	baseIterations := iterations / numWorkers
 	remainder := iterations % numWorkers
 
-	resultChan := make(chan uint32, numWorkers)
-	var wg sync.WaitGroup
-
-	// Start workers with balanced workload
-	for i := 0; i < numWorkers; i++ {
+	// Start workers - each works on a different portion of iterations
+	for workerID := 0; workerID < numWorkers; workerID++ {
 		wg.Add(1)
 
 		workerIterations := baseIterations
-		if i < remainder {
-			workerIterations++ // Distribute remainder evenly
+		if workerID < remainder {
+			workerIterations++
 		}
 
-		go hashWorkerV2(data, workerIterations, i, resultChan, &wg)
+		// CRITICAL: Minimize allocations and function calls
+		go func(id, iters int) {
+			defer wg.Done()
+
+			// Each worker uses a different hash seed for better distribution
+			hash := uint32(0x12345678) + uint32(id)*0x9E3779B9
+
+			// ULTRA-OPTIMIZED inner loop - no function calls, minimal operations
+			for iter := 0; iter < iters; iter++ {
+				// Process data in 4-byte chunks for maximum efficiency
+				i := 0
+				for ; i <= dataLen-4; i += 4 {
+					// Unrolled 4-byte processing
+					hash = hash*33 + uint32(dataBytes[i])
+					hash = (hash << 5) | (hash >> 27)
+					hash = hash*33 + uint32(dataBytes[i+1])
+					hash = (hash << 3) | (hash >> 29)
+					hash = hash*33 + uint32(dataBytes[i+2])
+					hash = (hash << 7) | (hash >> 25)
+					hash = hash*33 + uint32(dataBytes[i+3])
+					hash = (hash << 11) | (hash >> 21)
+				}
+
+				// Process remaining bytes (0-3)
+				for ; i < dataLen; i++ {
+					hash = hash*33 + uint32(dataBytes[i])
+					hash = (hash << 5) | (hash >> 27)
+				}
+
+				// Mix in iteration counter efficiently
+				hash ^= uint32(iter)
+				hash = hash*0x85EBCA6B + 0xC2B2AE35
+			}
+
+			results[id] = hash
+		}(workerID, workerIterations)
 	}
 
 	wg.Wait()
-	close(resultChan)
 
-	// Combine results with better mixing
-	finalHash := uint32(0x9E3779B9) // Better initial value
-	for workerResult := range resultChan {
-		finalHash ^= workerResult
-		finalHash = finalHash*0x85EBCA6B + 0xC2B2AE35     // Better mixing constants
-		finalHash = (finalHash << 13) | (finalHash >> 19) // Rotate for better distribution
+	// OPTIMIZED result combination - no channel overhead
+	finalHash := uint32(0x9E3779B9)
+	for i := 0; i < numWorkers; i++ {
+		finalHash ^= results[i]
+		finalHash = finalHash*0x85EBCA6B + 0xC2B2AE35
+		finalHash = (finalHash << 13) | (finalHash >> 19)
 	}
+
+	// Final avalanche mixing
+	finalHash ^= finalHash >> 16
+	finalHash *= 0x85EBCA6B
+	finalHash ^= finalHash >> 13
+	finalHash *= 0xC2B2AE35
+	finalHash ^= finalHash >> 16
 
 	return js.ValueOf(int(finalHash))
-}
-
-func hashWorkerV2(data string, iterations, workerId int, resultChan chan<- uint32, wg *sync.WaitGroup) {
-	defer wg.Done()
-
-	dataBytes := []byte(data)
-	dataLen := len(dataBytes)
-	hash := uint32(0x12345678) + uint32(workerId)*0x1000 // Different starting point per worker
-
-	for iter := 0; iter < iterations; iter++ {
-		// Process 8 bytes at a time when possible (loop unrolling)
-		i := 0
-		for ; i <= dataLen-8; i += 8 {
-			for j := 0; j < 8; j++ {
-				hash = hash*33 + uint32(dataBytes[i+j])
-				hash = (hash << 5) | (hash >> 27)
-			}
-		}
-
-		// Process remaining bytes
-		for ; i < dataLen; i++ {
-			hash = hash*33 + uint32(dataBytes[i])
-			hash = (hash << 5) | (hash >> 27)
-		}
-
-		// Add iteration mixing to improve distribution
-		hash ^= uint32(iter)
-	}
-
-	resultChan <- hash
 }
 
 // Enhanced concurrent ray tracing with tile-based rendering
@@ -602,9 +477,9 @@ func rayTracingWasmConcurrentV2(this js.Value, args []js.Value) interface{} {
 	go func() {
 		defer close(tileChan)
 		for y := 0; y < height; y += tileSize {
-			endY := min(y+tileSize, height)
+			endY := minInt(y+tileSize, height)
 			for x := 0; x < width; x += tileSize {
-				endX := min(x+tileSize, width)
+				endX := minInt(x+tileSize, width)
 				tileChan <- tile{startX: x, endX: endX, startY: y, endY: endY}
 			}
 		}
@@ -612,27 +487,12 @@ func rayTracingWasmConcurrentV2(this js.Value, args []js.Value) interface{} {
 
 	wg.Wait()
 
-	// FIXED: Use efficient bulk copy instead of O(n) boundary calls
-	resultTyped := js.Global().Get("Float64Array").New(len(result))
-	arrayBuffer := resultTyped.Get("buffer")
-	uint8View := js.Global().Get("Uint8Array").New(arrayBuffer)
-
-	// Copy bytes to Uint8Array view of the Float64Array buffer
-	js.CopyBytesToJS(
-		uint8View,
-		unsafe.Slice((*byte)(unsafe.Pointer(&result[0])), len(result)*8),
-	)
-
-	return resultTyped
+	// Use shared conversion function to avoid duplication
+	return createFloat64TypedArray(result)
 }
 
 func rayTracingTileWorker(tileChan chan tile, wg *sync.WaitGroup, result []float64, width, height, samples int) {
 	defer wg.Done()
-
-	// Sphere properties (same as JavaScript and single-threaded)
-	const sphereX, sphereY, sphereZ = 0.0, 0.0, -5.0
-	const sphereRadius2 = 1.0
-	const lightX, lightY, lightZ = -0.57735027, -0.57735027, -0.57735027
 
 	for t := range tileChan {
 		for y := t.startY; y < t.endY; y++ {
@@ -641,101 +501,13 @@ func rayTracingTileWorker(tileChan chan tile, wg *sync.WaitGroup, result []float
 			for x := t.startX; x < t.endX; x++ {
 				nx := (float64(x)/float64(width))*2.0 - 1.0
 
-				var colorR, colorG, colorB float64
+				// Use shared ray computation to avoid code duplication
+				colorR, colorG, colorB := computeRayColor(nx, ny, samples)
 
-				// FULLY INLINED: Zero function calls in hot path
-				for s := 0; s < samples; s++ {
-					// Fully inlined ray direction normalization
-					rayLenSq := nx*nx + ny*ny + 1.0
-
-					// Inlined square root (Newton-Raphson, 2 iterations)
-					var rayLen float64
-					if rayLenSq <= 0 {
-						rayLen = 0
-					} else if rayLenSq == 1 {
-						rayLen = 1
-					} else {
-						guess := rayLenSq * 0.5
-						guess = 0.5 * (guess + rayLenSq/guess)
-						rayLen = 0.5 * (guess + rayLenSq/guess)
-					}
-
-					invRayLen := 1.0 / rayLen
-					dirX := nx * invRayLen
-					dirY := ny * invRayLen
-					dirZ := -1.0 * invRayLen
-
-					// Fully inlined ray-sphere intersection
-					ocX := 0.0 - sphereX
-					ocY := 0.0 - sphereY
-					ocZ := 0.0 - sphereZ
-
-					rayA := dirX*dirX + dirY*dirY + dirZ*dirZ
-					rayB := 2.0 * (ocX*dirX + ocY*dirY + ocZ*dirZ)
-					rayC := ocX*ocX + ocY*ocY + ocZ*ocZ - sphereRadius2
-
-					discriminant := rayB*rayB - 4.0*rayA*rayC
-
-					if discriminant < 0 {
-						// Background color
-						colorR += 0.2
-						colorG += 0.2
-						colorB += 0.8
-					} else {
-						// Hit the sphere - inlined square root
-						var sqrtDisc float64
-						if discriminant <= 0 {
-							sqrtDisc = 0
-						} else if discriminant == 1 {
-							sqrtDisc = 1
-						} else {
-							guess := discriminant * 0.5
-							guess = 0.5 * (guess + discriminant/guess)
-							sqrtDisc = 0.5 * (guess + discriminant/guess)
-						}
-
-						t := (-rayB - sqrtDisc) / (2.0 * rayA)
-						if t < 0 {
-							t = (-rayB + sqrtDisc) / (2.0 * rayA)
-						}
-
-						if t < 0 {
-							// Behind camera
-							colorR += 0.2
-							colorG += 0.2
-							colorB += 0.8
-						} else {
-							// Fully inlined intersection point, normal, and lighting
-							ix := 0.0 + t*dirX
-							iy := 0.0 + t*dirY
-							iz := 0.0 + t*dirZ
-
-							normalX := ix - sphereX
-							normalY := iy - sphereY
-							normalZ := iz - sphereZ
-
-							// Inlined max(0, dot)
-							dot := normalX*lightX + normalY*lightY + normalZ*lightZ
-							var intensity float64
-							if dot > 0.0 {
-								intensity = dot
-							} else {
-								intensity = 0.0
-							}
-
-							baseColor := 0.2 + 0.8*intensity
-							colorR += baseColor * 1.0
-							colorG += baseColor * 0.7
-							colorB += baseColor * 0.3
-						}
-					}
-				}
-
-				invSamples := 1.0 / float64(samples)
 				idx := (y*width + x) * 3
-				result[idx] = colorR * invSamples
-				result[idx+1] = colorG * invSamples
-				result[idx+2] = colorB * invSamples
+				result[idx] = colorR
+				result[idx+1] = colorG
+				result[idx+2] = colorB
 			}
 		}
 	}
@@ -745,19 +517,7 @@ func rayTracingTileWorker(tileChan chan tile, wg *sync.WaitGroup, result []float
 // UTILITY FUNCTIONS
 // ============================================================================
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
+// Note: min/max functions moved to benchmarks_shared.go as minInt/maxInt to avoid duplication
 
 // Helper functions for ray tracing
 func normalize(x, y, z float64) []float64 {

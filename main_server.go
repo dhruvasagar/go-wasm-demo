@@ -1,4 +1,4 @@
-//go:build !js && !wasm
+//go:build !wasm
 
 package main
 
@@ -60,7 +60,7 @@ func main() {
 		fmt.Printf("🚀 Server starting on http://localhost:%s\n", port)
 		fmt.Println("📊 Visit /server.html for server-side demo")
 		fmt.Println("🌐 Visit / for WebAssembly demo")
-		
+
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server failed to start: %v", err)
 		}
@@ -357,7 +357,7 @@ func enableCORS(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	
+
 	// Security headers
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("X-Frame-Options", "DENY")
