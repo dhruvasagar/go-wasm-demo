@@ -329,11 +329,21 @@ func getAverageProductPrice(order Order) float64 {
 	}
 
 	total := 0.0
+	validProducts := 0
+	
 	for _, product := range order.Products {
-		total += product.Price
+		// Only include products with valid prices
+		if product.Price > 0 {
+			total += product.Price
+			validProducts++
+		}
 	}
 
-	return total / float64(len(order.Products))
+	if validProducts == 0 {
+		return 50.0 // Default if no valid products
+	}
+
+	return total / float64(validProducts)
 }
 
 func abs(x float64) float64 {
@@ -364,8 +374,10 @@ func AnalyzeUserBehavior(users []User, orders []Order) UserAnalytics {
 		}
 	}
 
-	analytics.AverageAge = float64(ageSum) / float64(len(users))
-	analytics.PremiumPercentage = (float64(premiumCount) / float64(len(users))) * 100
+	if len(users) > 0 {
+		analytics.AverageAge = float64(ageSum) / float64(len(users))
+		analytics.PremiumPercentage = (float64(premiumCount) / float64(len(users))) * 100
+	}
 	analytics.TopCountries = getTopCountries(countryCount, 3)
 
 	// Analyze orders

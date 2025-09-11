@@ -63,12 +63,12 @@ func mandelbrotWasmConcurrent(this js.Value, args []js.Value) interface{} {
 
 	// Create typed array and copy data efficiently
 	jsArray := js.Global().Get("Int32Array").New(pixels)
-	
+
 	// Use efficient bulk assignment
 	for i := 0; i < pixels; i++ {
 		jsArray.SetIndex(i, js.ValueOf(result[i]))
 	}
-	
+
 	return jsArray
 }
 
@@ -79,14 +79,14 @@ func mandelbrotWorker(rowChan <-chan int, wg *sync.WaitGroup, result []int32, wi
 	for py := range rowChan {
 		cy := ymin + float64(py)*dy
 		rowOffset := py * width
-		
+
 		for px := 0; px < width; px++ {
 			cx := xmin + float64(px)*dx
-			
+
 			// Optimized Mandelbrot calculation
 			zx, zy := 0.0, 0.0
 			iter := int32(0)
-			
+
 			// Hot loop - optimized for performance
 			for iter < int32(maxIter) {
 				zx2 := zx * zx
@@ -98,7 +98,7 @@ func mandelbrotWorker(rowChan <-chan int, wg *sync.WaitGroup, result []int32, wi
 				zx = zx2 - zy2 + cx
 				iter++
 			}
-			
+
 			result[rowOffset+px] = iter
 		}
 	}
@@ -166,7 +166,7 @@ func mandelbrotWasmWorkStealing(this js.Value, args []js.Value) interface{} {
 	for i := 0; i < pixels; i++ {
 		jsArray.SetIndex(i, js.ValueOf(result[i]))
 	}
-	
+
 	return jsArray
 }
 
@@ -178,22 +178,22 @@ func mandelbrotChunkWorker(workChan <-chan mandelbrotChunk, wg *sync.WaitGroup, 
 		for py := chunk.startY; py < chunk.endY; py++ {
 			cy := ymin + float64(py)*dy
 			rowOffset := py * width
-			
+
 			for px := 0; px < width; px++ {
 				cx := xmin + float64(px)*dx
-				
+
 				// Optimized Mandelbrot calculation with loop unrolling
 				zx, zy := 0.0, 0.0
 				iter := int32(0)
-				
+
 				// Unroll first iteration
-				zx2 := zx * zx  // 0
-				zy2 := zy * zy  // 0
+				zx2 := zx * zx // 0
+				zy2 := zy * zy // 0
 				if zx2+zy2 <= 4.0 {
-					zy = 2*zx*zy + cy  // cy
-					zx = zx2 - zy2 + cx  // cx
+					zy = 2*zx*zy + cy   // cy
+					zx = zx2 - zy2 + cx // cx
 					iter = 1
-					
+
 					// Continue with main loop
 					for iter < int32(maxIter) {
 						zx2 = zx * zx
@@ -207,7 +207,7 @@ func mandelbrotChunkWorker(workChan <-chan mandelbrotChunk, wg *sync.WaitGroup, 
 						iter++
 					}
 				}
-				
+
 				result[rowOffset+px] = iter
 			}
 		}

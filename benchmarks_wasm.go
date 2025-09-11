@@ -19,7 +19,7 @@ func matrixMultiplyWasmOptimized(this js.Value, args []js.Value) interface{} {
 	// CRITICAL: Copy JS arrays to Go slices ONCE to avoid 27M boundary calls
 	goMatrixA := make([]float64, size*size)
 	goMatrixB := make([]float64, size*size)
-	
+
 	// Single batch copy from JS to Go (only 180K calls instead of 27M)
 	for i := 0; i < size*size; i++ {
 		goMatrixA[i] = matrixA.Index(i).Float()
@@ -32,9 +32,9 @@ func matrixMultiplyWasmOptimized(this js.Value, args []js.Value) interface{} {
 	// Pure Go computation - no JS boundary calls in hot loop
 	for i := 0; i < size; i++ {
 		for k := 0; k < size; k++ {
-			aik := goMatrixA[i*size+k]  // No JS calls!
+			aik := goMatrixA[i*size+k] // No JS calls!
 			for j := 0; j < size; j++ {
-				result[i*size+j] += aik * goMatrixB[k*size+j]  // No JS calls!
+				result[i*size+j] += aik * goMatrixB[k*size+j] // No JS calls!
 			}
 		}
 	}
@@ -44,7 +44,7 @@ func matrixMultiplyWasmOptimized(this js.Value, args []js.Value) interface{} {
 	for i := 0; i < size*size; i++ {
 		jsArray.SetIndex(i, result[i])
 	}
-	
+
 	return jsArray
 }
 
@@ -77,14 +77,14 @@ func mandelbrotWasmSuperOptimized(this js.Value, args []js.Value) interface{} {
 	idx := 0
 	for py := 0; py < height; py++ {
 		cy := ymin + float64(py)*dy
-		
+
 		for px := 0; px < width; px++ {
 			cx := xmin + float64(px)*dx
-			
+
 			// Optimized Mandelbrot calculation
 			zx, zy := 0.0, 0.0
 			iter := int32(0)
-			
+
 			// Unroll the first few iterations for common cases
 			// Iteration 1
 			if iter < int32(maxIter) {
@@ -94,7 +94,7 @@ func mandelbrotWasmSuperOptimized(this js.Value, args []js.Value) interface{} {
 					zy = 2*zx*zy + cy
 					zx = zx2 - zy2 + cx
 					iter++
-					
+
 					// Continue with regular loop
 					for iter < int32(maxIter) {
 						zx2 = zx * zx
@@ -109,7 +109,7 @@ func mandelbrotWasmSuperOptimized(this js.Value, args []js.Value) interface{} {
 					}
 				}
 			}
-			
+
 			result[idx] = iter
 			idx++
 		}
@@ -117,12 +117,12 @@ func mandelbrotWasmSuperOptimized(this js.Value, args []js.Value) interface{} {
 
 	// Create typed array and copy data efficiently
 	jsArray := js.Global().Get("Int32Array").New(pixels)
-	
+
 	// Use efficient bulk assignment
 	for i := 0; i < pixels; i++ {
 		jsArray.SetIndex(i, js.ValueOf(result[i]))
 	}
-	
+
 	return jsArray
 }
 
@@ -149,17 +149,17 @@ func sha256HashWasmOptimized(this js.Value, args []js.Value) interface{} {
 		for ; i <= dataLen-4; i += 4 {
 			hash = hash*33 + uint32(dataBytes[i])
 			hash = (hash << 5) | (hash >> 27)
-			
+
 			hash = hash*33 + uint32(dataBytes[i+1])
 			hash = (hash << 5) | (hash >> 27)
-			
+
 			hash = hash*33 + uint32(dataBytes[i+2])
 			hash = (hash << 5) | (hash >> 27)
-			
+
 			hash = hash*33 + uint32(dataBytes[i+3])
 			hash = (hash << 5) | (hash >> 27)
 		}
-		
+
 		// Process remaining bytes
 		for ; i < dataLen; i++ {
 			hash = hash*33 + uint32(dataBytes[i])
@@ -169,4 +169,3 @@ func sha256HashWasmOptimized(this js.Value, args []js.Value) interface{} {
 
 	return js.ValueOf(int(hash))
 }
-

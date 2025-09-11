@@ -27,7 +27,7 @@ func matrixMultiplyWasmSingle(this js.Value, args []js.Value) interface{} {
 	// Copy JS arrays to Go slices once
 	goMatrixA := make([]float64, size*size)
 	goMatrixB := make([]float64, size*size)
-	
+
 	for i := 0; i < size*size; i++ {
 		goMatrixA[i] = matrixA.Index(i).Float()
 		goMatrixB[i] = matrixB.Index(i).Float()
@@ -50,7 +50,7 @@ func matrixMultiplyWasmSingle(this js.Value, args []js.Value) interface{} {
 	for i := 0; i < size*size; i++ {
 		jsArray.SetIndex(i, result[i])
 	}
-	
+
 	return jsArray
 }
 
@@ -79,13 +79,13 @@ func mandelbrotWasmSingle(this js.Value, args []js.Value) interface{} {
 	idx := 0
 	for py := 0; py < height; py++ {
 		cy := ymin + float64(py)*dy
-		
+
 		for px := 0; px < width; px++ {
 			cx := xmin + float64(px)*dx
-			
+
 			zx, zy := 0.0, 0.0
 			iter := int32(0)
-			
+
 			for iter < int32(maxIter) {
 				zx2 := zx * zx
 				zy2 := zy * zy
@@ -97,7 +97,7 @@ func mandelbrotWasmSingle(this js.Value, args []js.Value) interface{} {
 				zx = temp
 				iter++
 			}
-			
+
 			result[idx] = iter
 			idx++
 		}
@@ -107,7 +107,7 @@ func mandelbrotWasmSingle(this js.Value, args []js.Value) interface{} {
 	for i := 0; i < pixels; i++ {
 		jsArray.SetIndex(i, js.ValueOf(result[i]))
 	}
-	
+
 	return jsArray
 }
 
@@ -145,22 +145,22 @@ func rayTracingWasmSingle(this js.Value, args []js.Value) interface{} {
 	// Sphere properties (same as JavaScript)
 	const sphereX, sphereY, sphereZ = 0.0, 0.0, -5.0
 	const sphereRadius2 = 1.0
-	
+
 	// Light direction (same as JavaScript)
 	const lightX, lightY, lightZ = -0.57735027, -0.57735027, -0.57735027
 
 	for y := 0; y < height; y++ {
 		ny := (float64(y)/float64(height))*2.0 - 1.0
-		
+
 		for x := 0; x < width; x++ {
 			nx := (float64(x)/float64(width))*2.0 - 1.0
-			
+
 			var colorR, colorG, colorB float64
 
 			for s := 0; s < samples; s++ {
 				// FULLY INLINED: Ray direction normalization (no function calls)
 				rayLenSq := nx*nx + ny*ny + 1.0
-				
+
 				// Inlined fast square root (Newton-Raphson, 2 iterations)
 				var rayLen float64
 				if rayLenSq <= 0 {
@@ -172,7 +172,7 @@ func rayTracingWasmSingle(this js.Value, args []js.Value) interface{} {
 					guess = 0.5 * (guess + rayLenSq/guess)
 					rayLen = 0.5 * (guess + rayLenSq/guess)
 				}
-				
+
 				invRayLen := 1.0 / rayLen
 				dirX := nx * invRayLen
 				dirY := ny * invRayLen
@@ -182,13 +182,13 @@ func rayTracingWasmSingle(this js.Value, args []js.Value) interface{} {
 				ocX := 0.0 - sphereX
 				ocY := 0.0 - sphereY
 				ocZ := 0.0 - sphereZ
-				
+
 				rayA := dirX*dirX + dirY*dirY + dirZ*dirZ
 				rayB := 2.0 * (ocX*dirX + ocY*dirY + ocZ*dirZ)
 				rayC := ocX*ocX + ocY*ocY + ocZ*ocZ - sphereRadius2
-				
+
 				discriminant := rayB*rayB - 4.0*rayA*rayC
-				
+
 				if discriminant < 0 {
 					// Background color
 					colorR += 0.2
@@ -206,12 +206,12 @@ func rayTracingWasmSingle(this js.Value, args []js.Value) interface{} {
 						guess = 0.5 * (guess + discriminant/guess)
 						sqrtDisc = 0.5 * (guess + discriminant/guess)
 					}
-					
+
 					t := (-rayB - sqrtDisc) / (2.0 * rayA)
 					if t < 0 {
 						t = (-rayB + sqrtDisc) / (2.0 * rayA)
 					}
-					
+
 					if t < 0 {
 						// Behind camera
 						colorR += 0.2
@@ -222,11 +222,11 @@ func rayTracingWasmSingle(this js.Value, args []js.Value) interface{} {
 						ix := 0.0 + t*dirX
 						iy := 0.0 + t*dirY
 						iz := 0.0 + t*dirZ
-						
+
 						normalX := ix - sphereX
 						normalY := iy - sphereY
 						normalZ := iz - sphereZ
-						
+
 						// Inlined max(0, dot) - no function call
 						dot := normalX*lightX + normalY*lightY + normalZ*lightZ
 						var intensity float64
@@ -235,7 +235,7 @@ func rayTracingWasmSingle(this js.Value, args []js.Value) interface{} {
 						} else {
 							intensity = 0.0
 						}
-						
+
 						baseColor := 0.2 + 0.8*intensity
 						colorR += baseColor * 1.0
 						colorG += baseColor * 0.7
@@ -256,12 +256,12 @@ func rayTracingWasmSingle(this js.Value, args []js.Value) interface{} {
 	resultTyped := js.Global().Get("Float64Array").New(len(result))
 	arrayBuffer := resultTyped.Get("buffer")
 	uint8View := js.Global().Get("Uint8Array").New(arrayBuffer)
-	
+
 	js.CopyBytesToJS(
 		uint8View,
 		unsafe.Slice((*byte)(unsafe.Pointer(&result[0])), len(result)*8),
 	)
-	
+
 	return resultTyped
 }
 
@@ -273,7 +273,7 @@ func fastSqrt(x float64) float64 {
 	if x == 1 {
 		return 1
 	}
-	
+
 	// Better initial guess
 	var guess float64
 	if x >= 1 {
@@ -281,7 +281,7 @@ func fastSqrt(x float64) float64 {
 	} else {
 		guess = (x + 1) * 0.5
 	}
-	
+
 	// 3 iterations is usually enough for good precision
 	for i := 0; i < 3; i++ {
 		if guess == 0 {
@@ -289,7 +289,7 @@ func fastSqrt(x float64) float64 {
 		}
 		guess = 0.5 * (guess + x/guess)
 	}
-	
+
 	return guess
 }
 
@@ -310,7 +310,7 @@ func matrixMultiplyWasmConcurrentV2(this js.Value, args []js.Value) interface{} 
 	// Copy matrices once
 	goMatrixA := make([]float64, size*size)
 	goMatrixB := make([]float64, size*size)
-	
+
 	for i := 0; i < size*size; i++ {
 		goMatrixA[i] = matrixA.Index(i).Float()
 		goMatrixB[i] = matrixB.Index(i).Float()
@@ -323,7 +323,7 @@ func matrixMultiplyWasmConcurrentV2(this js.Value, args []js.Value) interface{} 
 	if numWorkers < 1 {
 		numWorkers = 4
 	}
-	
+
 	// Adjust for small matrices
 	if size < 100 {
 		numWorkers = 2
@@ -365,7 +365,7 @@ func matrixMultiplyWasmConcurrentV2(this js.Value, args []js.Value) interface{} 
 	for i := 0; i < size*size; i++ {
 		jsArray.SetIndex(i, result[i])
 	}
-	
+
 	return jsArray
 }
 
@@ -376,12 +376,12 @@ func matrixMultiplyChunkWorker(workChan <-chan matrixWorkChunk, wg *sync.WaitGro
 		// Process chunk of rows
 		for i := chunk.startRow; i < chunk.endRow; i++ {
 			rowOffset := i * size
-			
+
 			// Cache-optimized computation
 			for k := 0; k < size; k++ {
 				aik := matrixA[rowOffset+k]
 				bRowOffset := k * size
-				
+
 				// Vectorizable inner loop
 				for j := 0; j < size; j++ {
 					result[rowOffset+j] += aik * matrixB[bRowOffset+j]
@@ -450,7 +450,7 @@ func mandelbrotWasmConcurrentV2(this js.Value, args []js.Value) interface{} {
 	for i := 0; i < pixels; i++ {
 		jsArray.SetIndex(i, js.ValueOf(result[i]))
 	}
-	
+
 	return jsArray
 }
 
@@ -461,14 +461,14 @@ func mandelbrotChunkWorkerV2(workChan <-chan mandelbrotChunk, wg *sync.WaitGroup
 		for py := chunk.startY; py < chunk.endY; py++ {
 			cy := ymin + float64(py)*dy
 			rowOffset := py * width
-			
+
 			for px := 0; px < width; px++ {
 				cx := xmin + float64(px)*dx
-				
+
 				// Optimized Mandelbrot with early escape
 				zx, zy := 0.0, 0.0
 				iter := int32(0)
-				
+
 				// Unrolled first few iterations for better performance
 				for iter < int32(maxIter) {
 					zx2 := zx * zx
@@ -476,14 +476,14 @@ func mandelbrotChunkWorkerV2(workChan <-chan mandelbrotChunk, wg *sync.WaitGroup
 					if zx2+zy2 > 4.0 {
 						break
 					}
-					
+
 					// Compute next iteration
 					temp := zx2 - zy2 + cx
 					zy = 2*zx*zy + cy
 					zx = temp
 					iter++
 				}
-				
+
 				result[rowOffset+px] = iter
 			}
 		}
@@ -514,12 +514,12 @@ func sha256HashWasmConcurrentV2(this js.Value, args []js.Value) interface{} {
 	// Start workers with balanced workload
 	for i := 0; i < numWorkers; i++ {
 		wg.Add(1)
-		
+
 		workerIterations := baseIterations
 		if i < remainder {
 			workerIterations++ // Distribute remainder evenly
 		}
-		
+
 		go hashWorkerV2(data, workerIterations, i, resultChan, &wg)
 	}
 
@@ -530,7 +530,7 @@ func sha256HashWasmConcurrentV2(this js.Value, args []js.Value) interface{} {
 	finalHash := uint32(0x9E3779B9) // Better initial value
 	for workerResult := range resultChan {
 		finalHash ^= workerResult
-		finalHash = finalHash*0x85EBCA6B + 0xC2B2AE35 // Better mixing constants
+		finalHash = finalHash*0x85EBCA6B + 0xC2B2AE35     // Better mixing constants
 		finalHash = (finalHash << 13) | (finalHash >> 19) // Rotate for better distribution
 	}
 
@@ -553,13 +553,13 @@ func hashWorkerV2(data string, iterations, workerId int, resultChan chan<- uint3
 				hash = (hash << 5) | (hash >> 27)
 			}
 		}
-		
+
 		// Process remaining bytes
 		for ; i < dataLen; i++ {
 			hash = hash*33 + uint32(dataBytes[i])
 			hash = (hash << 5) | (hash >> 27)
 		}
-		
+
 		// Add iteration mixing to improve distribution
 		hash ^= uint32(iter)
 	}
@@ -616,13 +616,13 @@ func rayTracingWasmConcurrentV2(this js.Value, args []js.Value) interface{} {
 	resultTyped := js.Global().Get("Float64Array").New(len(result))
 	arrayBuffer := resultTyped.Get("buffer")
 	uint8View := js.Global().Get("Uint8Array").New(arrayBuffer)
-	
+
 	// Copy bytes to Uint8Array view of the Float64Array buffer
 	js.CopyBytesToJS(
 		uint8View,
 		unsafe.Slice((*byte)(unsafe.Pointer(&result[0])), len(result)*8),
 	)
-	
+
 	return resultTyped
 }
 
@@ -637,7 +637,7 @@ func rayTracingTileWorker(tileChan chan tile, wg *sync.WaitGroup, result []float
 	for t := range tileChan {
 		for y := t.startY; y < t.endY; y++ {
 			ny := (float64(y)/float64(height))*2.0 - 1.0
-			
+
 			for x := t.startX; x < t.endX; x++ {
 				nx := (float64(x)/float64(width))*2.0 - 1.0
 
@@ -647,7 +647,7 @@ func rayTracingTileWorker(tileChan chan tile, wg *sync.WaitGroup, result []float
 				for s := 0; s < samples; s++ {
 					// Fully inlined ray direction normalization
 					rayLenSq := nx*nx + ny*ny + 1.0
-					
+
 					// Inlined square root (Newton-Raphson, 2 iterations)
 					var rayLen float64
 					if rayLenSq <= 0 {
@@ -659,7 +659,7 @@ func rayTracingTileWorker(tileChan chan tile, wg *sync.WaitGroup, result []float
 						guess = 0.5 * (guess + rayLenSq/guess)
 						rayLen = 0.5 * (guess + rayLenSq/guess)
 					}
-					
+
 					invRayLen := 1.0 / rayLen
 					dirX := nx * invRayLen
 					dirY := ny * invRayLen
@@ -669,13 +669,13 @@ func rayTracingTileWorker(tileChan chan tile, wg *sync.WaitGroup, result []float
 					ocX := 0.0 - sphereX
 					ocY := 0.0 - sphereY
 					ocZ := 0.0 - sphereZ
-					
+
 					rayA := dirX*dirX + dirY*dirY + dirZ*dirZ
 					rayB := 2.0 * (ocX*dirX + ocY*dirY + ocZ*dirZ)
 					rayC := ocX*ocX + ocY*ocY + ocZ*ocZ - sphereRadius2
-					
+
 					discriminant := rayB*rayB - 4.0*rayA*rayC
-					
+
 					if discriminant < 0 {
 						// Background color
 						colorR += 0.2
@@ -693,12 +693,12 @@ func rayTracingTileWorker(tileChan chan tile, wg *sync.WaitGroup, result []float
 							guess = 0.5 * (guess + discriminant/guess)
 							sqrtDisc = 0.5 * (guess + discriminant/guess)
 						}
-						
+
 						t := (-rayB - sqrtDisc) / (2.0 * rayA)
 						if t < 0 {
 							t = (-rayB + sqrtDisc) / (2.0 * rayA)
 						}
-						
+
 						if t < 0 {
 							// Behind camera
 							colorR += 0.2
@@ -709,11 +709,11 @@ func rayTracingTileWorker(tileChan chan tile, wg *sync.WaitGroup, result []float
 							ix := 0.0 + t*dirX
 							iy := 0.0 + t*dirY
 							iz := 0.0 + t*dirZ
-							
+
 							normalX := ix - sphereX
 							normalY := iy - sphereY
 							normalZ := iz - sphereZ
-							
+
 							// Inlined max(0, dot)
 							dot := normalX*lightX + normalY*lightY + normalZ*lightZ
 							var intensity float64
@@ -722,7 +722,7 @@ func rayTracingTileWorker(tileChan chan tile, wg *sync.WaitGroup, result []float
 							} else {
 								intensity = 0.0
 							}
-							
+
 							baseColor := 0.2 + 0.8*intensity
 							colorR += baseColor * 1.0
 							colorG += baseColor * 0.7
@@ -777,9 +777,9 @@ func traceRay(originX, originY, originZ, dirX, dirY, dirZ float64) []float64 {
 
 	// Ray-sphere intersection
 	ocX := originX - sphereX
-	ocY := originY - sphereY  
+	ocY := originY - sphereY
 	ocZ := originZ - sphereZ
-	
+
 	a := dirX*dirX + dirY*dirY + dirZ*dirZ
 	b := 2.0 * (ocX*dirX + ocY*dirY + ocZ*dirZ)
 	c := ocX*ocX + ocY*ocY + ocZ*ocZ - radius*radius
@@ -793,22 +793,22 @@ func traceRay(originX, originY, originZ, dirX, dirY, dirZ float64) []float64 {
 
 	// Calculate intersection point
 	t := (-b - math.Sqrt(discriminant)) / (2.0 * a)
-	
+
 	// Calculate hit point and normal
 	hitX := originX + t*dirX
 	hitY := originY + t*dirY
 	hitZ := originZ + t*dirZ
-	
+
 	normalX := (hitX - sphereX) / radius
-	normalY := (hitY - sphereY) / radius  
+	normalY := (hitY - sphereY) / radius
 	normalZ := (hitZ - sphereZ) / radius
 
 	// Simple lighting calculation
 	lightDirX, lightDirY, lightDirZ := -0.57735, -0.57735, -0.57735
 	lightIntensity := math.Max(0, normalX*lightDirX+normalY*lightDirY+normalZ*lightDirZ)
-	
+
 	// Basic shading
 	intensity := 0.1 + 0.9*lightIntensity
-	
+
 	return []float64{intensity, intensity * 0.8, intensity * 0.6}
 }

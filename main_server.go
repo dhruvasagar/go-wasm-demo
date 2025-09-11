@@ -3,16 +3,35 @@
 package main
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 )
 
 func main() {
+	// Get port from environment variable or use default
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8181"
+	}
+
+	// Setup HTTP server with timeouts
+	server := &http.Server{
+		Addr:           ":" + port,
+		ReadTimeout:    15 * time.Second,
+		WriteTimeout:   15 * time.Second,
+		IdleTimeout:    60 * time.Second,
+		MaxHeaderBytes: 1 << 20, // 1MB
+	}
+
 	// Serve static files
 	http.HandleFunc("/", serveStaticFile)
 
@@ -33,10 +52,34 @@ func main() {
 	http.HandleFunc("/api/benchmark/mandelbrot", handleMandelbrotBenchmark)
 	http.HandleFunc("/api/benchmark/hash", handleHashBenchmark)
 
-	fmt.Println("🚀 Server starting on http://localhost:8181")
-	fmt.Println("📊 Visit /server.html for server-side demo")
-	fmt.Println("🌐 Visit / for WebAssembly demo")
-	log.Fatal(http.ListenAndServe(":8181", nil))
+	// Setup graceful shutdown
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		fmt.Printf("🚀 Server starting on http://localhost:%s\n", port)
+		fmt.Println("📊 Visit /server.html for server-side demo")
+		fmt.Println("🌐 Visit / for WebAssembly demo")
+		
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server failed to start: %v", err)
+		}
+	}()
+
+	// Wait for interrupt signal
+	<-c
+	fmt.Println("\n🛑 Shutting down server gracefully...")
+
+	// Create a deadline for shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Attempt graceful shutdown
+	if err := server.Shutdown(ctx); err != nil {
+		log.Printf("Server forced to shutdown: %v", err)
+	} else {
+		fmt.Println("✅ Server shut down successfully")
+	}
 }
 
 func serveStaticFile(w http.ResponseWriter, r *http.Request) {
@@ -62,9 +105,15 @@ func handleValidateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Add content length check to prevent memory issues
+	if r.ContentLength > 1024*1024 { // 1MB limit
+		http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
+		return
+	}
+
 	var user User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -72,7 +121,10 @@ func handleValidateUser(w http.ResponseWriter, r *http.Request) {
 	result := ValidateUser(user)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
+	if err := json.NewEncoder(w).Encode(result); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }
 
 // API endpoint for product validation using shared business logic
@@ -112,13 +164,37 @@ func handleCalculateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Add content length check to prevent memory issues
+	if r.ContentLength > 1024*1024 { // 1MB limit
+		http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
+		return
+	}
+
 	var requestData struct {
 		Order Order `json:"order"`
 		User  User  `json:"user"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Validate order has products
+	if len(requestData.Order.Products) == 0 {
+		http.Error(w, "Order must contain at least one product", http.StatusBadRequest)
+		return
+	}
+
+	// Validate quantities match products
+	if len(requestData.Order.Products) != len(requestData.Order.Quantities) {
+		http.Error(w, "Product and quantity arrays must be the same length", http.StatusBadRequest)
+		return
+	}
+
+	// Validate user data is present
+	if requestData.User.Country == "" {
+		http.Error(w, "User country is required", http.StatusBadRequest)
 		return
 	}
 
@@ -134,7 +210,10 @@ func handleCalculateOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }
 
 // API endpoint for product recommendations using shared business logic
@@ -274,9 +353,16 @@ func handleHashBenchmark(w http.ResponseWriter, r *http.Request) {
 }
 
 func enableCORS(w http.ResponseWriter) {
+	// CORS headers
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	
+	// Security headers
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("X-Frame-Options", "DENY")
+	w.Header().Set("X-XSS-Protection", "1; mode=block")
+	w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
 }
 
 // Demo data generators

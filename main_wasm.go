@@ -21,18 +21,18 @@ func main() {
 	js.Global().Set("matrixMultiplyWasm", js.FuncOf(matrixMultiplyWasmSingle))
 	js.Global().Set("sha256HashWasm", js.FuncOf(sha256HashWasmSingle))
 	js.Global().Set("rayTracingWasm", js.FuncOf(rayTracingWasmSingle))
-	
+
 	// Optimized single-threaded versions
 	js.Global().Set("mandelbrotWasmOptimized", js.FuncOf(mandelbrotOptimizedWasm))
 	js.Global().Set("matrixMultiplyWasmOptimized", js.FuncOf(matrixMultiplyOptimizedWasm))
 	js.Global().Set("sha256HashWasmOptimized", js.FuncOf(sha256HashOptimizedWasm))
-	
+
 	// Optimized concurrent versions - Single best implementations
 	js.Global().Set("matrixMultiplyOptimizedWasm", js.FuncOf(matrixMultiplyOptimizedWasm))
 	js.Global().Set("sha256HashOptimizedWasm", js.FuncOf(sha256HashOptimizedWasm))
 	js.Global().Set("mandelbrotOptimizedWasm", js.FuncOf(mandelbrotOptimizedWasm))
 	js.Global().Set("rayTracingOptimizedWasm", js.FuncOf(rayTracingOptimizedWasm))
-	
+
 	// Maintain backwards compatibility with existing names
 	js.Global().Set("matrixMultiplyConcurrentWasm", js.FuncOf(matrixMultiplyOptimizedWasm))
 	js.Global().Set("sha256HashConcurrentWasm", js.FuncOf(sha256HashOptimizedWasm))
@@ -46,22 +46,38 @@ func main() {
 			"NumCPU":     runtime.NumCPU(),
 		}
 	}))
-	
+
 	// Keep the program running
 	select {}
 }
 
 // WebAssembly wrapper for user validation
 func validateUserWasm(this js.Value, args []js.Value) interface{} {
+	// Handle edge cases and validate input
 	if len(args) != 1 {
 		return map[string]interface{}{
 			"valid":  false,
-			"errors": []string{"Invalid number of arguments"},
+			"errors": []string{"Invalid number of arguments - expected 1"},
 		}
 	}
 
-	// Parse JSON input
+	// Check if argument is valid
+	if args[0].Type() != js.TypeString {
+		return map[string]interface{}{
+			"valid":  false,
+			"errors": []string{"Invalid argument type - expected string"},
+		}
+	}
+
+	// Parse JSON input with safety check
 	userJSON := args[0].String()
+	if len(userJSON) == 0 {
+		return map[string]interface{}{
+			"valid":  false,
+			"errors": []string{"Empty JSON input"},
+		}
+	}
+
 	user, err := UserFromJSON(userJSON)
 	if err != nil {
 		return map[string]interface{}{
@@ -79,7 +95,7 @@ func validateUserWasm(this js.Value, args []js.Value) interface{} {
 	for i, err := range result.Errors {
 		jsErrors[i] = err
 	}
-	
+
 	return map[string]interface{}{
 		"valid":  result.Valid,
 		"errors": jsErrors,
@@ -88,14 +104,30 @@ func validateUserWasm(this js.Value, args []js.Value) interface{} {
 
 // WebAssembly wrapper for product validation
 func validateProductWasm(this js.Value, args []js.Value) interface{} {
+	// Handle edge cases and validate input
 	if len(args) != 1 {
 		return map[string]interface{}{
 			"valid":  false,
-			"errors": []string{"Invalid number of arguments"},
+			"errors": []string{"Invalid number of arguments - expected 1"},
+		}
+	}
+
+	// Check if argument is valid
+	if args[0].Type() != js.TypeString {
+		return map[string]interface{}{
+			"valid":  false,
+			"errors": []string{"Invalid argument type - expected string"},
 		}
 	}
 
 	productJSON := args[0].String()
+	if len(productJSON) == 0 {
+		return map[string]interface{}{
+			"valid":  false,
+			"errors": []string{"Empty JSON input"},
+		}
+	}
+
 	product, err := ProductFromJSON(productJSON)
 	if err != nil {
 		return map[string]interface{}{
@@ -111,7 +143,7 @@ func validateProductWasm(this js.Value, args []js.Value) interface{} {
 	for i, err := range result.Errors {
 		jsErrors[i] = err
 	}
-	
+
 	return map[string]interface{}{
 		"valid":  result.Valid,
 		"errors": jsErrors,
@@ -126,8 +158,27 @@ func calculateOrderTotalWasm(this js.Value, args []js.Value) interface{} {
 		}
 	}
 
+	// Validate argument types
+	if args[0].Type() != js.TypeString || args[1].Type() != js.TypeString {
+		return map[string]interface{}{
+			"error": "Invalid argument types - expected strings",
+		}
+	}
+
 	orderJSON := args[0].String()
 	userJSON := args[1].String()
+
+	// Validate input is not empty
+	if len(orderJSON) == 0 {
+		return map[string]interface{}{
+			"error": "Empty order JSON",
+		}
+	}
+	if len(userJSON) == 0 {
+		return map[string]interface{}{
+			"error": "Empty user JSON",
+		}
+	}
 
 	order, err := OrderFromJSON(orderJSON)
 	if err != nil {
@@ -143,10 +194,24 @@ func calculateOrderTotalWasm(this js.Value, args []js.Value) interface{} {
 		}
 	}
 
+	// Validate order has products
+	if len(order.Products) == 0 {
+		return map[string]interface{}{
+			"error": "Order must contain at least one product",
+		}
+	}
+
+	// Validate quantities match products
+	if len(order.Products) != len(order.Quantities) {
+		return map[string]interface{}{
+			"error": "Product and quantity arrays must be the same length",
+		}
+	}
+
 	// Use shared business logic
 	CalculateOrderTotal(&order, user)
 
-	// Return updated order
+	// Return updated order with validation
 	return map[string]interface{}{
 		"subtotal": order.Subtotal,
 		"tax":      order.Tax,
