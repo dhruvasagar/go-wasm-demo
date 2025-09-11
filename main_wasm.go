@@ -4,48 +4,82 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"runtime"
 	"syscall/js"
 )
 
 func main() {
-	// Register shared business logic functions for WebAssembly
+	// ====================================================================
+	// WASM FUNCTION REGISTRATION
+	// ====================================================================
+	// This function registers all Go functions to be callable from JavaScript.
+	// Functions are organized by category for maintainability.
+	//
+	// Naming Convention:
+	// - Business Logic: [function]Wasm (e.g., validateUserWasm)
+	// - Benchmarks: [algorithm]Wasm (e.g., mandelbrotWasm)
+	// - Optimized: [algorithm]OptimizedWasm (e.g., matrixMultiplyOptimizedWasm)
+	// - Concurrent: [algorithm]ConcurrentWasm (e.g., sha256HashConcurrentWasm)
+	// - Legacy: Short names for compatibility (e.g., rayTracing)
+	//
+	// All functions follow consistent error handling patterns.
+	// ====================================================================
+
+	// ====================================================================
+	// BUSINESS LOGIC FUNCTIONS
+	// Shared business logic that runs identically on client and server
+	// ====================================================================
 	js.Global().Set("validateUserWasm", js.FuncOf(validateUserWasm))
 	js.Global().Set("validateProductWasm", js.FuncOf(validateProductWasm))
 	js.Global().Set("calculateOrderTotalWasm", js.FuncOf(calculateOrderTotalWasm))
 	js.Global().Set("recommendProductsWasm", js.FuncOf(recommendProductsWasm))
 	js.Global().Set("analyzeUserBehaviorWasm", js.FuncOf(analyzeUserBehaviorWasm))
 
-	// Performance benchmark functions - Single-threaded versions
+	// ====================================================================
+	// BENCHMARK FUNCTIONS - SINGLE-THREADED VERSIONS
+	// Basic single-threaded implementations for performance comparison
+	// ====================================================================
 	js.Global().Set("mandelbrotWasm", js.FuncOf(mandelbrotWasmSingle))
 	js.Global().Set("matrixMultiplyWasm", js.FuncOf(matrixMultiplyWasmSingle))
 	js.Global().Set("sha256HashWasm", js.FuncOf(sha256HashWasmSingle))
 	js.Global().Set("rayTracingWasm", js.FuncOf(rayTracingWasmSingle))
 
-	// Optimized single-threaded versions
-	js.Global().Set("mandelbrotWasmOptimized", js.FuncOf(mandelbrotOptimizedWasm))
-	js.Global().Set("matrixMultiplyWasmOptimized", js.FuncOf(matrixMultiplyOptimizedWasm))
-	js.Global().Set("sha256HashWasmOptimized", js.FuncOf(sha256HashOptimizedWasm))
-
-	// Optimized concurrent versions - Single best implementations
+	// ====================================================================
+	// BENCHMARK FUNCTIONS - OPTIMIZED VERSIONS
+	// Highly optimized single-threaded implementations with boundary call reduction
+	// ====================================================================
+	js.Global().Set("mandelbrotOptimizedWasm", js.FuncOf(mandelbrotOptimizedWasm))
 	js.Global().Set("matrixMultiplyOptimizedWasm", js.FuncOf(matrixMultiplyOptimizedWasm))
 	js.Global().Set("sha256HashOptimizedWasm", js.FuncOf(sha256HashOptimizedWasm))
-	js.Global().Set("mandelbrotOptimizedWasm", js.FuncOf(mandelbrotOptimizedWasm))
 	js.Global().Set("rayTracingOptimizedWasm", js.FuncOf(rayTracingOptimizedWasm))
 
-	// Maintain backwards compatibility with existing names
-	js.Global().Set("matrixMultiplyConcurrentWasm", js.FuncOf(matrixMultiplyOptimizedWasm))
-	js.Global().Set("sha256HashConcurrentWasm", js.FuncOf(sha256HashOptimizedWasm))
-	js.Global().Set("mandelbrotConcurrentWasm", js.FuncOf(mandelbrotOptimizedWasm))
-	js.Global().Set("rayTracingConcurrentWasm", js.FuncOf(rayTracingOptimizedWasm))
+	// ====================================================================
+	// BENCHMARK FUNCTIONS - CONCURRENT VERSIONS
+	// Multi-threaded implementations using goroutines for parallel processing
+	// ====================================================================
+	js.Global().Set("mandelbrotConcurrentWasm", js.FuncOf(mandelbrotWasmConcurrentV2))
+	js.Global().Set("matrixMultiplyConcurrentWasm", js.FuncOf(matrixMultiplyWasmConcurrentV2))
+	js.Global().Set("sha256HashConcurrentWasm", js.FuncOf(sha256HashWasmConcurrentV2))
+	js.Global().Set("rayTracingConcurrentWasm", js.FuncOf(rayTracingWasmConcurrentV2))
 
-	// Debug function to check concurrency
-	js.Global().Set("debugConcurrency", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		return map[string]interface{}{
-			"GOMAXPROCS": runtime.GOMAXPROCS(0),
-			"NumCPU":     runtime.NumCPU(),
-		}
-	}))
+	// ====================================================================
+	// LEGACY/COMPATIBILITY ALIASES
+	// Shorter function names for backward compatibility and ease of use
+	// ====================================================================
+	// Basic ray tracing from mandelbrot.go
+	js.Global().Set("rayTracing", js.FuncOf(rayTracingWasm))
+
+	// User-friendly names for optimized versions
+	js.Global().Set("mandelbrotFast", js.FuncOf(mandelbrotOptimizedWasm))
+	js.Global().Set("matrixMultiplyFast", js.FuncOf(matrixMultiplyOptimizedWasm))
+	js.Global().Set("sha256HashFast", js.FuncOf(sha256HashOptimizedWasm))
+
+	// ====================================================================
+	// UTILITY FUNCTIONS
+	// Debugging and system information functions
+	// ====================================================================
+	js.Global().Set("debugConcurrency", js.FuncOf(debugConcurrencyWasm))
 
 	// Keep the program running
 	select {}
@@ -224,27 +258,57 @@ func calculateOrderTotalWasm(this js.Value, args []js.Value) interface{} {
 // WebAssembly wrapper for product recommendations
 func recommendProductsWasm(this js.Value, args []js.Value) interface{} {
 	if len(args) != 3 {
-		return []interface{}{}
+		return map[string]interface{}{
+			"error":           "Invalid number of arguments - expected 3",
+			"recommendations": []interface{}{},
+		}
+	}
+
+	// Validate argument types
+	for i, arg := range args {
+		if arg.Type() != js.TypeString {
+			return map[string]interface{}{
+				"error":           fmt.Sprintf("Argument %d is not a string", i),
+				"recommendations": []interface{}{},
+			}
+		}
 	}
 
 	userJSON := args[0].String()
 	productsJSON := args[1].String()
 	orderJSON := args[2].String()
 
+	// Validate inputs are not empty
+	if len(userJSON) == 0 || len(productsJSON) == 0 || len(orderJSON) == 0 {
+		return map[string]interface{}{
+			"error":           "One or more JSON inputs are empty",
+			"recommendations": []interface{}{},
+		}
+	}
+
 	user, err := UserFromJSON(userJSON)
 	if err != nil {
-		return []interface{}{}
+		return map[string]interface{}{
+			"error":           "Invalid user JSON: " + err.Error(),
+			"recommendations": []interface{}{},
+		}
 	}
 
 	var products []Product
 	err = json.Unmarshal([]byte(productsJSON), &products)
 	if err != nil {
-		return []interface{}{}
+		return map[string]interface{}{
+			"error":           "Invalid products JSON: " + err.Error(),
+			"recommendations": []interface{}{},
+		}
 	}
 
 	order, err := OrderFromJSON(orderJSON)
 	if err != nil {
-		return []interface{}{}
+		return map[string]interface{}{
+			"error":           "Invalid order JSON: " + err.Error(),
+			"recommendations": []interface{}{},
+		}
 	}
 
 	// Use shared business logic
@@ -264,19 +328,41 @@ func recommendProductsWasm(this js.Value, args []js.Value) interface{} {
 		}
 	}
 
-	return result
+	return map[string]interface{}{
+		"error":           "",
+		"recommendations": result,
+	}
 }
 
 // WebAssembly wrapper for user behavior analysis
 func analyzeUserBehaviorWasm(this js.Value, args []js.Value) interface{} {
 	if len(args) != 2 {
 		return map[string]interface{}{
-			"error": "Invalid number of arguments",
+			"error": "Invalid number of arguments - expected 2",
+		}
+	}
+
+	// Validate argument types
+	if args[0].Type() != js.TypeString || args[1].Type() != js.TypeString {
+		return map[string]interface{}{
+			"error": "Invalid argument types - expected strings",
 		}
 	}
 
 	usersJSON := args[0].String()
 	ordersJSON := args[1].String()
+
+	// Validate inputs are not empty
+	if len(usersJSON) == 0 {
+		return map[string]interface{}{
+			"error": "Empty users JSON",
+		}
+	}
+	if len(ordersJSON) == 0 {
+		return map[string]interface{}{
+			"error": "Empty orders JSON",
+		}
+	}
 
 	var users []User
 	err := json.Unmarshal([]byte(usersJSON), &users)
@@ -298,11 +384,28 @@ func analyzeUserBehaviorWasm(this js.Value, args []js.Value) interface{} {
 	analytics := AnalyzeUserBehavior(users, orders)
 
 	return map[string]interface{}{
+		"error":               "",
 		"average_age":         analytics.AverageAge,
 		"premium_percentage":  analytics.PremiumPercentage,
 		"top_countries":       analytics.TopCountries,
 		"total_revenue":       analytics.TotalRevenue,
 		"average_order_value": analytics.AverageOrderValue,
+	}
+}
+
+// ====================================================================
+// UTILITY FUNCTIONS
+// ====================================================================
+
+// Debug function to check concurrency and system info
+func debugConcurrencyWasm(this js.Value, args []js.Value) interface{} {
+	return map[string]interface{}{
+		"GOMAXPROCS":    runtime.GOMAXPROCS(0),
+		"NumCPU":        runtime.NumCPU(),
+		"NumGoroutines": runtime.NumGoroutine(),
+		"GoVersion":     runtime.Version(),
+		"GOARCH":        runtime.GOARCH,
+		"GOOS":          runtime.GOOS,
 	}
 }
 
