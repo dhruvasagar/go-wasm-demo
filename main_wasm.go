@@ -23,9 +23,9 @@ func main() {
 	js.Global().Set("rayTracingWasm", js.FuncOf(rayTracingWasmSingle))
 	
 	// Optimized single-threaded versions
-	js.Global().Set("mandelbrotWasmOptimized", js.FuncOf(mandelbrotWasmSuperOptimized))
-	js.Global().Set("matrixMultiplyWasmOptimized", js.FuncOf(matrixMultiplyWasmOptimized))
-	js.Global().Set("sha256HashWasmOptimized", js.FuncOf(sha256HashWasmOptimized))
+	js.Global().Set("mandelbrotWasmOptimized", js.FuncOf(mandelbrotOptimizedWasm))
+	js.Global().Set("matrixMultiplyWasmOptimized", js.FuncOf(matrixMultiplyOptimizedWasm))
+	js.Global().Set("sha256HashWasmOptimized", js.FuncOf(sha256HashOptimizedWasm))
 	
 	// Optimized concurrent versions - Single best implementations
 	js.Global().Set("matrixMultiplyOptimizedWasm", js.FuncOf(matrixMultiplyOptimizedWasm))

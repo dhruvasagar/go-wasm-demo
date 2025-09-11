@@ -4,229 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🚀 WebAssembly Performance Benchmarks - JavaScript vs Single-Thread vs Concurrent</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            min-height: 100vh;
-            color: #fff;
-            line-height: 1.6;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding: 40px 0;
-        }
-        .header h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        .header p {
-            font-size: 1.3rem;
-            color: #b8d4f1;
-        }
-        .controls {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-        .control-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        .control-item {
-            display: flex;
-            flex-direction: column;
-        }
-        label {
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #b8d4f1;
-        }
-        input, select {
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid rgba(255,255,255,0.3);
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-            font-size: 16px;
-        }
-        input::placeholder {
-            color: rgba(255,255,255,0.5);
-        }
-        button {
-            background: linear-gradient(45deg, #4CAF50, #45a049);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            margin-top: 10px;
-        }
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-        }
-        button:active {
-            transform: translateY(0);
-        }
-        button:disabled {
-            background: #666;
-            cursor: not-allowed;
-        }
-        .benchmark-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .benchmark-card {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-        .benchmark-card h2 {
-            margin-bottom: 20px;
-            font-size: 1.8rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .benchmark-results {
-            margin-top: 20px;
-        }
-        .result-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
-            gap: 10px;
-            padding: 10px;
-            background: rgba(0,0,0,0.2);
-            margin-bottom: 10px;
-            border-radius: 8px;
-            align-items: center;
-        }
-        .result-row:nth-child(odd) {
-            background: rgba(255,255,255,0.05);
-        }
-        .result-label {
-            font-weight: bold;
-        }
-        .result-time {
-            text-align: right;
-        }
-        .result-speedup {
-            text-align: right;
-            font-weight: bold;
-        }
-        .speedup-positive {
-            color: #4CAF50;
-        }
-        .speedup-negative {
-            color: #f44336;
-        }
-        .status {
-            padding: 10px;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .status.loading {
-            background: rgba(255, 152, 0, 0.3);
-        }
-        .status.ready {
-            background: rgba(76, 175, 80, 0.3);
-        }
-        .status.error {
-            background: rgba(244, 67, 54, 0.3);
-        }
-        .progress-bar {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            height: 30px;
-            overflow: hidden;
-            margin: 20px 0;
-        }
-        .progress-fill {
-            background: linear-gradient(45deg, #4CAF50, #45a049);
-            height: 100%;
-            transition: width 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-        .summary {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-        .summary h2 {
-            margin-bottom: 20px;
-            font-size: 2rem;
-        }
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-        .summary-card {
-            background: rgba(0,0,0,0.2);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        .summary-card h3 {
-            color: #b8d4f1;
-            margin-bottom: 10px;
-        }
-        .summary-value {
-            font-size: 2rem;
-            font-weight: bold;
-        }
-        .visualization {
-            margin-top: 20px;
-        }
-        canvas {
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        .info-box {
-            background: rgba(33, 150, 243, 0.2);
-            border-left: 4px solid #2196F3;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 0 5px 5px 0;
-        }
-        .info-box h4 {
-            margin-bottom: 5px;
-        }
-    </style>
+    <link rel="stylesheet" href="assets/css/performance.css" />
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loader-container">
+            <div class="spinner"></div>
+            <div class="loading-text" id="loadingText">Preparing Benchmarks...</div>
+            <div class="loading-details" id="loadingDetails">Initializing performance tests</div>
+            
+            <div class="progress-container">
+                <div class="progress-label">
+                    <span id="progressLabel">Progress</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="loading-progress-bar">
+                    <div class="loading-progress-fill" id="loadingProgressFill" style="width: 0%;"></div>
+                </div>
+            </div>
+            
+            <div class="benchmark-status" id="benchmarkStatus" style="display: none;">
+                <div class="current-benchmark" id="currentBenchmark"></div>
+                <div class="current-test" id="currentTest"></div>
+            </div>
+            
+            <div class="loading-stats" id="loadingStats" style="display: none;">
+                <div class="stat-item">
+                    <span class="stat-value" id="completedTests">0</span>
+                    <span class="stat-label">Tests Completed</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="totalTests">0</span>
+                    <span class="stat-label">Total Tests</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>🚀 WebAssembly Performance Benchmarks</h1>
@@ -308,18 +123,128 @@
         let wasmReady = false;
         const benchmarkResults = {};
         
-        // Initialize WebAssembly
-        const go = new Go();
-        WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
-            go.run(result.instance);
-            wasmReady = true;
-            document.getElementById('status').className = 'status ready';
-            document.getElementById('status').textContent = '✅ WebAssembly module loaded and ready!';
-            document.getElementById('runBenchmark').disabled = false;
-        }).catch((err) => {
-            console.error("Failed to load WebAssembly:", err);
-            document.getElementById('status').className = 'status error';
-            document.getElementById('status').textContent = '❌ Failed to load WebAssembly: ' + err.message;
+        // Loading overlay functions
+        function showLoadingOverlay(text = 'Loading...', details = '') {
+            const overlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
+            const loadingDetails = document.getElementById('loadingDetails');
+            
+            loadingText.textContent = text;
+            loadingDetails.textContent = details;
+            
+            overlay.classList.remove('hide');
+            overlay.classList.add('show');
+        }
+        
+        function hideLoadingOverlay() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.remove('show');
+            overlay.classList.add('hide');
+            
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                overlay.classList.remove('hide');
+            }, 300);
+        }
+        
+        function updateLoadingProgress(completed, total, benchmarkName = '', testName = '') {
+            const progressPercent = Math.round((completed / total) * 100);
+            const progressFill = document.getElementById('loadingProgressFill');
+            const progressPercentSpan = document.getElementById('progressPercent');
+            const completedTestsSpan = document.getElementById('completedTests');
+            const totalTestsSpan = document.getElementById('totalTests');
+            const benchmarkStatus = document.getElementById('benchmarkStatus');
+            const currentBenchmark = document.getElementById('currentBenchmark');
+            const currentTest = document.getElementById('currentTest');
+            const loadingStats = document.getElementById('loadingStats');
+            
+            // Update progress bar
+            progressFill.style.width = progressPercent + '%';
+            progressPercentSpan.textContent = progressPercent + '%';
+            
+            // Update stats
+            completedTestsSpan.textContent = completed;
+            totalTestsSpan.textContent = total;
+            
+            // Show stats and benchmark info after first test
+            if (completed > 0) {
+                loadingStats.style.display = 'grid';
+                benchmarkStatus.style.display = 'block';
+                
+                if (benchmarkName) {
+                    currentBenchmark.textContent = benchmarkName;
+                }
+                if (testName) {
+                    currentTest.textContent = `Running: ${testName}`;
+                }
+            }
+            
+            // Update loading text based on progress
+            const loadingText = document.getElementById('loadingText');
+            const loadingDetails = document.getElementById('loadingDetails');
+            
+            if (progressPercent === 0) {
+                loadingText.textContent = 'Starting Benchmarks...';
+                loadingDetails.textContent = 'Preparing performance tests';
+            } else if (progressPercent < 25) {
+                loadingText.textContent = 'Running Initial Tests...';
+                loadingDetails.textContent = 'Warming up and measuring baseline performance';
+            } else if (progressPercent < 75) {
+                loadingText.textContent = 'Processing Benchmarks...';
+                loadingDetails.textContent = 'Comparing JavaScript vs WebAssembly performance';
+            } else if (progressPercent < 100) {
+                loadingText.textContent = 'Finalizing Results...';
+                loadingDetails.textContent = 'Completing final tests and calculations';
+            } else {
+                loadingText.textContent = 'Tests Complete!';
+                loadingDetails.textContent = 'Generating performance summary and charts';
+            }
+        }
+        
+        // Show initial loading overlay for WebAssembly
+        document.addEventListener('DOMContentLoaded', function() {
+            showLoadingOverlay('Loading WebAssembly...', 'Downloading and initializing Go WASM module');
+            updateLoadingProgress(0, 100);
+            
+            // Simulate progress for WASM loading
+            let wasmProgress = 0;
+            const wasmProgressInterval = setInterval(() => {
+                wasmProgress += Math.random() * 15;
+                if (wasmProgress > 90) wasmProgress = 90;
+                updateLoadingProgress(wasmProgress, 100, 'WebAssembly', 'Loading module...');
+            }, 200);
+            
+            // Initialize WebAssembly
+            const go = new Go();
+            WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+                clearInterval(wasmProgressInterval);
+                updateLoadingProgress(100, 100, 'WebAssembly', 'Module loaded successfully!');
+                
+                go.run(result.instance);
+                wasmReady = true;
+                document.getElementById('status').className = 'status ready';
+                document.getElementById('status').textContent = '✅ WebAssembly module loaded and ready!';
+                document.getElementById('runBenchmark').disabled = false;
+                
+                // Hide overlay after a brief delay
+                setTimeout(() => {
+                    hideLoadingOverlay();
+                }, 1500);
+                
+            }).catch((err) => {
+                clearInterval(wasmProgressInterval);
+                console.error("Failed to load WebAssembly:", err);
+                document.getElementById('status').className = 'status error';
+                document.getElementById('status').textContent = '❌ Failed to load WebAssembly: ' + err.message;
+                
+                // Update overlay to show error
+                document.getElementById('loadingText').textContent = 'Error Loading WebAssembly';
+                document.getElementById('loadingDetails').textContent = err.message;
+                
+                setTimeout(() => {
+                    hideLoadingOverlay();
+                }, 3000);
+            });
         });
 
         // Benchmark functions
@@ -407,26 +332,29 @@
                 return;
             }
 
+            // Show loading overlay
+            showLoadingOverlay('Starting Benchmarks...', 'Preparing performance tests');
+
             // Clear previous results
             document.getElementById('benchmarkResults').innerHTML = '';
             document.getElementById('summary').style.display = 'none';
             // Clear the benchmarkResults object
             Object.keys(benchmarkResults).forEach(key => delete benchmarkResults[key]);
 
-            // Show progress bar
+            // Hide normal progress bar (we'll use overlay progress)
             const progressBar = document.getElementById('progressBar');
-            progressBar.style.display = 'block';
+            progressBar.style.display = 'none';
             
             const iterations = parseInt(document.getElementById('iterations').value);
             const totalTests = benchmarks.length * 3 * iterations;
             let completedTests = 0;
+            
+            // Initialize progress
+            updateLoadingProgress(0, totalTests);
 
-            function updateProgress() {
+            function updateProgress(benchmarkName = '', testName = '') {
                 completedTests++;
-                const progress = Math.round((completedTests / totalTests) * 100);
-                const progressFill = document.getElementById('progressFill');
-                progressFill.style.width = progress + '%';
-                progressFill.textContent = progress + '%';
+                updateLoadingProgress(completedTests, totalTests, benchmarkName, testName);
             }
 
             // Run each benchmark
@@ -445,6 +373,10 @@
                     if (!fn) {
                         console.error(`Function ${test.fn} not found`);
                         results.push({ name: test.name, avg: 0, times: [] });
+                        // Still update progress for missing functions
+                        for (let i = 0; i < iterations; i++) {
+                            updateProgress(benchmark.name, test.name);
+                        }
                         continue;
                     }
 
@@ -480,10 +412,13 @@
                             
                             const time = performance.now() - start;
                             times.push(time);
-                            updateProgress();
+                            updateProgress(benchmark.name, test.name);
+                            
+                            // Add small delay to make progress visible
+                            await new Promise(resolve => setTimeout(resolve, 10));
                         } catch (e) {
                             console.error('Test error:', e);
-                            updateProgress();
+                            updateProgress(benchmark.name, test.name);
                         }
                     }
 
@@ -496,9 +431,18 @@
                 benchmarkResults[benchmark.name] = results;
             }
 
-            // Hide progress bar and show summary
-            progressBar.style.display = 'none';
+            // Complete progress and show summary
+            updateLoadingProgress(totalTests, totalTests, 'Complete!', 'Generating summary...');
+            
+            // Small delay before showing summary
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
             showSummary();
+            
+            // Hide loading overlay
+            setTimeout(() => {
+                hideLoadingOverlay();
+            }, 1000);
         }
 
         function createBenchmarkCard(name, icon) {

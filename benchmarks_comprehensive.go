@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"sync"
 	"syscall/js"
+	"unsafe"
 )
 
 // ============================================================================
@@ -133,7 +134,7 @@ func sha256HashWasmSingle(this js.Value, args []js.Value) interface{} {
 	return js.ValueOf(int(hash))
 }
 
-// Single-threaded ray tracing
+// Single-threaded ray tracing - OPTIMIZED with inlined calculations
 func rayTracingWasmSingle(this js.Value, args []js.Value) interface{} {
 	width := args[0].Int()
 	height := args[1].Int()
@@ -141,38 +142,155 @@ func rayTracingWasmSingle(this js.Value, args []js.Value) interface{} {
 
 	result := make([]float64, width*height*3)
 
+	// Sphere properties (same as JavaScript)
+	const sphereX, sphereY, sphereZ = 0.0, 0.0, -5.0
+	const sphereRadius2 = 1.0
+	
+	// Light direction (same as JavaScript)
+	const lightX, lightY, lightZ = -0.57735027, -0.57735027, -0.57735027
+
 	for y := 0; y < height; y++ {
+		ny := (float64(y)/float64(height))*2.0 - 1.0
+		
 		for x := 0; x < width; x++ {
 			nx := (float64(x)/float64(width))*2.0 - 1.0
-			ny := (float64(y)/float64(height))*2.0 - 1.0
-
-			var r, g, b float64
+			
+			var colorR, colorG, colorB float64
 
 			for s := 0; s < samples; s++ {
-				rayDir := normalize(nx, ny, -1.0)
-				color := traceRay(0.0, 0.0, 0.0, rayDir[0], rayDir[1], rayDir[2])
-				r += color[0]
-				g += color[1]
-				b += color[2]
+				// FULLY INLINED: Ray direction normalization (no function calls)
+				rayLenSq := nx*nx + ny*ny + 1.0
+				
+				// Inlined fast square root (Newton-Raphson, 2 iterations)
+				var rayLen float64
+				if rayLenSq <= 0 {
+					rayLen = 0
+				} else if rayLenSq == 1 {
+					rayLen = 1
+				} else {
+					guess := rayLenSq * 0.5
+					guess = 0.5 * (guess + rayLenSq/guess)
+					rayLen = 0.5 * (guess + rayLenSq/guess)
+				}
+				
+				invRayLen := 1.0 / rayLen
+				dirX := nx * invRayLen
+				dirY := ny * invRayLen
+				dirZ := -1.0 * invRayLen
+
+				// FULLY INLINED: Ray-sphere intersection
+				ocX := 0.0 - sphereX
+				ocY := 0.0 - sphereY
+				ocZ := 0.0 - sphereZ
+				
+				rayA := dirX*dirX + dirY*dirY + dirZ*dirZ
+				rayB := 2.0 * (ocX*dirX + ocY*dirY + ocZ*dirZ)
+				rayC := ocX*ocX + ocY*ocY + ocZ*ocZ - sphereRadius2
+				
+				discriminant := rayB*rayB - 4.0*rayA*rayC
+				
+				if discriminant < 0 {
+					// Background color
+					colorR += 0.2
+					colorG += 0.2
+					colorB += 0.8
+				} else {
+					// Hit the sphere - inlined square root
+					var sqrtDisc float64
+					if discriminant <= 0 {
+						sqrtDisc = 0
+					} else if discriminant == 1 {
+						sqrtDisc = 1
+					} else {
+						guess := discriminant * 0.5
+						guess = 0.5 * (guess + discriminant/guess)
+						sqrtDisc = 0.5 * (guess + discriminant/guess)
+					}
+					
+					t := (-rayB - sqrtDisc) / (2.0 * rayA)
+					if t < 0 {
+						t = (-rayB + sqrtDisc) / (2.0 * rayA)
+					}
+					
+					if t < 0 {
+						// Behind camera
+						colorR += 0.2
+						colorG += 0.2
+						colorB += 0.8
+					} else {
+						// FULLY INLINED: Calculate intersection point, normal, and lighting
+						ix := 0.0 + t*dirX
+						iy := 0.0 + t*dirY
+						iz := 0.0 + t*dirZ
+						
+						normalX := ix - sphereX
+						normalY := iy - sphereY
+						normalZ := iz - sphereZ
+						
+						// Inlined max(0, dot) - no function call
+						dot := normalX*lightX + normalY*lightY + normalZ*lightZ
+						var intensity float64
+						if dot > 0.0 {
+							intensity = dot
+						} else {
+							intensity = 0.0
+						}
+						
+						baseColor := 0.2 + 0.8*intensity
+						colorR += baseColor * 1.0
+						colorG += baseColor * 0.7
+						colorB += baseColor * 0.3
+					}
+				}
 			}
 
-			r /= float64(samples)
-			g /= float64(samples)
-			b /= float64(samples)
-
+			invSamples := 1.0 / float64(samples)
 			idx := (y*width + x) * 3
-			result[idx] = r
-			result[idx+1] = g
-			result[idx+2] = b
+			result[idx] = colorR * invSamples
+			result[idx+1] = colorG * invSamples
+			result[idx+2] = colorB * invSamples
 		}
 	}
 
-	jsArray := js.Global().Get("Array").New(len(result))
-	for i, val := range result {
-		jsArray.SetIndex(i, js.ValueOf(val))
-	}
+	// Efficient bulk copy
+	resultTyped := js.Global().Get("Float64Array").New(len(result))
+	arrayBuffer := resultTyped.Get("buffer")
+	uint8View := js.Global().Get("Uint8Array").New(arrayBuffer)
+	
+	js.CopyBytesToJS(
+		uint8View,
+		unsafe.Slice((*byte)(unsafe.Pointer(&result[0])), len(result)*8),
+	)
+	
+	return resultTyped
+}
 
-	return jsArray
+// Fast square root approximation (avoids math.Sqrt overhead)
+func fastSqrt(x float64) float64 {
+	if x <= 0 {
+		return 0
+	}
+	if x == 1 {
+		return 1
+	}
+	
+	// Better initial guess
+	var guess float64
+	if x >= 1 {
+		guess = x * 0.5
+	} else {
+		guess = (x + 1) * 0.5
+	}
+	
+	// 3 iterations is usually enough for good precision
+	for i := 0; i < 3; i++ {
+		if guess == 0 {
+			break
+		}
+		guess = 0.5 * (guess + x/guess)
+	}
+	
+	return guess
 }
 
 // ============================================================================
@@ -494,42 +612,130 @@ func rayTracingWasmConcurrentV2(this js.Value, args []js.Value) interface{} {
 
 	wg.Wait()
 
-	jsArray := js.Global().Get("Array").New(len(result))
-	for i, val := range result {
-		jsArray.SetIndex(i, js.ValueOf(val))
-	}
-
-	return jsArray
+	// FIXED: Use efficient bulk copy instead of O(n) boundary calls
+	resultTyped := js.Global().Get("Float64Array").New(len(result))
+	arrayBuffer := resultTyped.Get("buffer")
+	uint8View := js.Global().Get("Uint8Array").New(arrayBuffer)
+	
+	// Copy bytes to Uint8Array view of the Float64Array buffer
+	js.CopyBytesToJS(
+		uint8View,
+		unsafe.Slice((*byte)(unsafe.Pointer(&result[0])), len(result)*8),
+	)
+	
+	return resultTyped
 }
 
 func rayTracingTileWorker(tileChan chan tile, wg *sync.WaitGroup, result []float64, width, height, samples int) {
 	defer wg.Done()
 
+	// Sphere properties (same as JavaScript and single-threaded)
+	const sphereX, sphereY, sphereZ = 0.0, 0.0, -5.0
+	const sphereRadius2 = 1.0
+	const lightX, lightY, lightZ = -0.57735027, -0.57735027, -0.57735027
+
 	for t := range tileChan {
 		for y := t.startY; y < t.endY; y++ {
+			ny := (float64(y)/float64(height))*2.0 - 1.0
+			
 			for x := t.startX; x < t.endX; x++ {
 				nx := (float64(x)/float64(width))*2.0 - 1.0
-				ny := (float64(y)/float64(height))*2.0 - 1.0
 
-				var r, g, b float64
+				var colorR, colorG, colorB float64
 
-				// Sample accumulation
+				// FULLY INLINED: Zero function calls in hot path
 				for s := 0; s < samples; s++ {
-					rayDir := normalize(nx, ny, -1.0)
-					color := traceRay(0.0, 0.0, 0.0, rayDir[0], rayDir[1], rayDir[2])
-					r += color[0]
-					g += color[1]
-					b += color[2]
+					// Fully inlined ray direction normalization
+					rayLenSq := nx*nx + ny*ny + 1.0
+					
+					// Inlined square root (Newton-Raphson, 2 iterations)
+					var rayLen float64
+					if rayLenSq <= 0 {
+						rayLen = 0
+					} else if rayLenSq == 1 {
+						rayLen = 1
+					} else {
+						guess := rayLenSq * 0.5
+						guess = 0.5 * (guess + rayLenSq/guess)
+						rayLen = 0.5 * (guess + rayLenSq/guess)
+					}
+					
+					invRayLen := 1.0 / rayLen
+					dirX := nx * invRayLen
+					dirY := ny * invRayLen
+					dirZ := -1.0 * invRayLen
+
+					// Fully inlined ray-sphere intersection
+					ocX := 0.0 - sphereX
+					ocY := 0.0 - sphereY
+					ocZ := 0.0 - sphereZ
+					
+					rayA := dirX*dirX + dirY*dirY + dirZ*dirZ
+					rayB := 2.0 * (ocX*dirX + ocY*dirY + ocZ*dirZ)
+					rayC := ocX*ocX + ocY*ocY + ocZ*ocZ - sphereRadius2
+					
+					discriminant := rayB*rayB - 4.0*rayA*rayC
+					
+					if discriminant < 0 {
+						// Background color
+						colorR += 0.2
+						colorG += 0.2
+						colorB += 0.8
+					} else {
+						// Hit the sphere - inlined square root
+						var sqrtDisc float64
+						if discriminant <= 0 {
+							sqrtDisc = 0
+						} else if discriminant == 1 {
+							sqrtDisc = 1
+						} else {
+							guess := discriminant * 0.5
+							guess = 0.5 * (guess + discriminant/guess)
+							sqrtDisc = 0.5 * (guess + discriminant/guess)
+						}
+						
+						t := (-rayB - sqrtDisc) / (2.0 * rayA)
+						if t < 0 {
+							t = (-rayB + sqrtDisc) / (2.0 * rayA)
+						}
+						
+						if t < 0 {
+							// Behind camera
+							colorR += 0.2
+							colorG += 0.2
+							colorB += 0.8
+						} else {
+							// Fully inlined intersection point, normal, and lighting
+							ix := 0.0 + t*dirX
+							iy := 0.0 + t*dirY
+							iz := 0.0 + t*dirZ
+							
+							normalX := ix - sphereX
+							normalY := iy - sphereY
+							normalZ := iz - sphereZ
+							
+							// Inlined max(0, dot)
+							dot := normalX*lightX + normalY*lightY + normalZ*lightZ
+							var intensity float64
+							if dot > 0.0 {
+								intensity = dot
+							} else {
+								intensity = 0.0
+							}
+							
+							baseColor := 0.2 + 0.8*intensity
+							colorR += baseColor * 1.0
+							colorG += baseColor * 0.7
+							colorB += baseColor * 0.3
+						}
+					}
 				}
 
-				r /= float64(samples)
-				g /= float64(samples)
-				b /= float64(samples)
-
+				invSamples := 1.0 / float64(samples)
 				idx := (y*width + x) * 3
-				result[idx] = r
-				result[idx+1] = g
-				result[idx+2] = b
+				result[idx] = colorR * invSamples
+				result[idx+1] = colorG * invSamples
+				result[idx+2] = colorB * invSamples
 			}
 		}
 	}

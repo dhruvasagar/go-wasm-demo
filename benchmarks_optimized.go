@@ -404,93 +404,131 @@ func mandelbrotOptimizedWasm(this js.Value, args []js.Value) interface{} {
 	return resultTyped
 }
 
-// rayTracingOptimizedWasm - ZERO boundary calls during computation
+// rayTracingOptimizedWasm - ULTRA-SIMPLE ZERO-FUNCTION-CALL VERSION
 func rayTracingOptimizedWasm(this js.Value, args []js.Value) interface{} {
-	// Single boundary calls for parameters
 	width := args[0].Int()
 	height := args[1].Int()
 	samples := args[2].Int()
 
-	// ALL COMPUTATION IN PURE GO - ZERO BOUNDARY CALLS
-	totalFloats := width * height * 3
-	result := make([]float64, totalFloats)
+	result := make([]float64, width*height*3)
 
-	// Hierarchical tiling for optimal cache usage
-	const outerTileSize = 64
-	const innerTileSize = 8
-	const rayBatchSize = 4
-	
-	for oty := 0; oty < height; oty += outerTileSize {
-		for otx := 0; otx < width; otx += outerTileSize {
-			oyEnd := minInt(oty+outerTileSize, height)
-			oxEnd := minInt(otx+outerTileSize, width)
+	// Sphere properties (consistent with JavaScript)
+	const sphereX, sphereY, sphereZ = 0.0, 0.0, -5.0
+	const sphereRadius2 = 1.0
+	const lightX, lightY, lightZ = -0.57735027, -0.57735027, -0.57735027
+
+	// ULTRA-SIMPLE LOOP - NO TILING, NO BATCHING, NO FUNCTION CALLS
+	for y := 0; y < height; y++ {
+		ny := (float64(y)/float64(height))*2.0 - 1.0
+		
+		for x := 0; x < width; x++ {
+			nx := (float64(x)/float64(width))*2.0 - 1.0
 			
-			for ity := oty; ity < oyEnd; ity += innerTileSize {
-				for itx := otx; itx < oxEnd; itx += innerTileSize {
-					iyEnd := minInt(ity+innerTileSize, oyEnd)
-					ixEnd := minInt(itx+innerTileSize, oxEnd)
+			var colorR, colorG, colorB float64
+
+			for s := 0; s < samples; s++ {
+				// FULLY INLINED: Ray direction normalization
+				rayLenSq := nx*nx + ny*ny + 1.0
+				
+				// Inlined fast square root
+				var rayLen float64
+				if rayLenSq <= 0 {
+					rayLen = 0
+				} else if rayLenSq == 1 {
+					rayLen = 1
+				} else {
+					guess := rayLenSq * 0.5
+					guess = 0.5 * (guess + rayLenSq/guess)
+					rayLen = 0.5 * (guess + rayLenSq/guess)
+				}
+				
+				invRayLen := 1.0 / rayLen
+				dirX := nx * invRayLen
+				dirY := ny * invRayLen
+				dirZ := -1.0 * invRayLen
+
+				// FULLY INLINED: Ray-sphere intersection
+				ocX := 0.0 - sphereX
+				ocY := 0.0 - sphereY
+				ocZ := 0.0 - sphereZ
+				
+				rayA := dirX*dirX + dirY*dirY + dirZ*dirZ
+				rayB := 2.0 * (ocX*dirX + ocY*dirY + ocZ*dirZ)
+				rayC := ocX*ocX + ocY*ocY + ocZ*ocZ - sphereRadius2
+				
+				discriminant := rayB*rayB - 4.0*rayA*rayC
+				
+				if discriminant < 0 {
+					// Background color
+					colorR += 0.2
+					colorG += 0.2
+					colorB += 0.8
+				} else {
+					// Hit the sphere - inlined square root
+					var sqrtDisc float64
+					if discriminant <= 0 {
+						sqrtDisc = 0
+					} else if discriminant == 1 {
+						sqrtDisc = 1
+					} else {
+						guess := discriminant * 0.5
+						guess = 0.5 * (guess + discriminant/guess)
+						sqrtDisc = 0.5 * (guess + discriminant/guess)
+					}
 					
-					for y := ity; y < iyEnd; y++ {
-						ny := (float64(y)/float64(height))*2.0 - 1.0
+					t := (-rayB - sqrtDisc) / (2.0 * rayA)
+					if t < 0 {
+						t = (-rayB + sqrtDisc) / (2.0 * rayA)
+					}
+					
+					if t < 0 {
+						// Behind camera
+						colorR += 0.2
+						colorG += 0.2
+						colorB += 0.8
+					} else {
+						// FULLY INLINED: Calculate intersection, normal, lighting
+						ix := 0.0 + t*dirX
+						iy := 0.0 + t*dirY
+						iz := 0.0 + t*dirZ
 						
-						for x := itx; x < ixEnd; x += rayBatchSize {
-							batchEnd := minInt(x+rayBatchSize, ixEnd)
-							batchSize := batchEnd - x
-							
-							// Vectorized ray batch processing
-							rayBatch := make([]struct{
-								nx, r, g, b float64
-							}, rayBatchSize)
-							
-							// Setup ray directions
-							for i := 0; i < batchSize; i++ {
-								rayBatch[i].nx = (float64(x+i)/float64(width))*2.0 - 1.0
-							}
-							
-							// Sample processing with unrolling
-							for s := 0; s < samples; s += 2 {
-								for i := 0; i < batchSize; i++ {
-									rayDir := normalizeOptimized(rayBatch[i].nx, ny, -1.0)
-									color1 := traceRayOptimized(0.0, 0.0, 0.0, rayDir[0], rayDir[1], rayDir[2])
-									rayBatch[i].r += color1[0]
-									rayBatch[i].g += color1[1]
-									rayBatch[i].b += color1[2]
-									
-									if s+1 < samples {
-										color2 := traceRayOptimized(0.0, 0.0, 0.0, rayDir[0], rayDir[1], rayDir[2])
-										rayBatch[i].r += color2[0]
-										rayBatch[i].g += color2[1]
-										rayBatch[i].b += color2[2]
-									}
-								}
-							}
-							
-							// Store results
-							invSamples := 1.0 / float64(samples)
-							for i := 0; i < batchSize; i++ {
-								idx := (y*width + x + i) * 3
-								result[idx] = rayBatch[i].r * invSamples
-								result[idx+1] = rayBatch[i].g * invSamples
-								result[idx+2] = rayBatch[i].b * invSamples
-							}
+						normalX := ix - sphereX
+						normalY := iy - sphereY
+						normalZ := iz - sphereZ
+						
+						// Inlined max(0, dot)
+						dot := normalX*lightX + normalY*lightY + normalZ*lightZ
+						var intensity float64
+						if dot > 0.0 {
+							intensity = dot
+						} else {
+							intensity = 0.0
 						}
+						
+						baseColor := 0.2 + 0.8*intensity
+						colorR += baseColor * 1.0
+						colorG += baseColor * 0.7
+						colorB += baseColor * 0.3
 					}
 				}
 			}
+
+			invSamples := 1.0 / float64(samples)
+			idx := (y*width + x) * 3
+			result[idx] = colorR * invSamples
+			result[idx+1] = colorG * invSamples
+			result[idx+2] = colorB * invSamples
 		}
 	}
 
-	// CRITICAL: Return result efficiently - Create typed array and copy data
-	resultTyped := js.Global().Get("Float64Array").New(totalFloats)
-	
-	// Use efficient bulk copy through array buffer
+	// Efficient bulk copy
+	resultTyped := js.Global().Get("Float64Array").New(len(result))
 	arrayBuffer := resultTyped.Get("buffer")
 	uint8View := js.Global().Get("Uint8Array").New(arrayBuffer)
 	
-	// Copy bytes to Uint8Array view of the Float64Array buffer
 	js.CopyBytesToJS(
 		uint8View,
-		unsafe.Slice((*byte)(unsafe.Pointer(&result[0])), totalFloats*8),
+		unsafe.Slice((*byte)(unsafe.Pointer(&result[0])), len(result)*8),
 	)
 	
 	return resultTyped
