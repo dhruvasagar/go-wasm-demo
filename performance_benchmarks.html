@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 WebAssembly Performance Benchmarks - JavaScript vs Single-Thread vs Concurrent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #fff;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+        }
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .header p {
+            font-size: 1.3rem;
+            color: #b8d4f1;
+        }
+        .controls {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .control-item {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #b8d4f1;
+        }
+        input, select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 16px;
+        }
+        input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            margin-top: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .benchmark-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .benchmark-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .benchmark-card h2 {
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .benchmark-results {
+            margin-top: 20px;
+        }
+        .result-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+            border-radius: 8px;
+            align-items: center;
+        }
+        .result-row:nth-child(odd) {
+            background: rgba(255,255,255,0.05);
+        }
+        .result-label {
+            font-weight: bold;
+        }
+        .result-time {
+            text-align: right;
+        }
+        .result-speedup {
+            text-align: right;
+            font-weight: bold;
+        }
+        .speedup-positive {
+            color: #4CAF50;
+        }
+        .speedup-negative {
+            color: #f44336;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .status.loading {
+            background: rgba(255, 152, 0, 0.3);
+        }
+        .status.ready {
+            background: rgba(76, 175, 80, 0.3);
+        }
+        .status.error {
+            background: rgba(244, 67, 54, 0.3);
+        }
+        .progress-bar {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-fill {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            height: 100%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .summary {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .summary h2 {
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .summary-card {
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .summary-card h3 {
+            color: #b8d4f1;
+            margin-bottom: 10px;
+        }
+        .summary-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .visualization {
+            margin-top: 20px;
+        }
+        canvas {
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .info-box {
+            background: rgba(33, 150, 243, 0.2);
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        .info-box h4 {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 WebAssembly Performance Benchmarks</h1>
+            <p>JavaScript vs Single-Thread WASM vs Concurrent WASM</p>
+        </div>
+
+        <div class="status loading" id="status">
+            Loading WebAssembly module...
+        </div>
+
+        <div class="info-box">
+            <h4>ℹ️ About This Benchmark</h4>
+            <p>This benchmark compares the performance of compute-intensive algorithms across three implementations:</p>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li><strong>JavaScript</strong>: Native browser implementation</li>
+                <li><strong>Single-Thread WASM</strong>: Go compiled to WebAssembly (single-threaded)</li>
+                <li><strong>Concurrent WASM</strong>: Go with goroutines and parallelism (multi-threaded)</li>
+            </ul>
+        </div>
+
+        <div class="controls">
+            <h2>⚙️ Benchmark Configuration</h2>
+            <div class="control-group">
+                <div class="control-item">
+                    <label for="iterations">Test Iterations:</label>
+                    <input type="number" id="iterations" value="5" min="1" max="20">
+                </div>
+                <div class="control-item">
+                    <label for="matrixSize">Matrix Size:</label>
+                    <select id="matrixSize">
+                        <option value="100">100x100 (Small)</option>
+                        <option value="200" selected>200x200 (Medium)</option>
+                        <option value="400">400x400 (Large)</option>
+                        <option value="800">800x800 (Very Large)</option>
+                    </select>
+                </div>
+                <div class="control-item">
+                    <label for="mandelbrotSize">Mandelbrot Size:</label>
+                    <select id="mandelbrotSize">
+                        <option value="400">400x300 (Small)</option>
+                        <option value="800" selected>800x600 (Medium)</option>
+                        <option value="1200">1200x900 (Large)</option>
+                    </select>
+                </div>
+                <div class="control-item">
+                    <label for="hashIterations">Hash Iterations:</label>
+                    <select id="hashIterations">
+                        <option value="10000">10,000</option>
+                        <option value="50000" selected>50,000</option>
+                        <option value="100000">100,000</option>
+                        <option value="500000">500,000</option>
+                    </select>
+                </div>
+            </div>
+            <button id="runBenchmark" onclick="runAllBenchmarks()">
+                🏁 Run All Benchmarks
+            </button>
+        </div>
+
+        <div class="progress-bar" id="progressBar" style="display: none;">
+            <div class="progress-fill" id="progressFill" style="width: 0%;">0%</div>
+        </div>
+
+        <div class="benchmark-grid" id="benchmarkResults">
+            <!-- Benchmark results will be inserted here -->
+        </div>
+
+        <div class="summary" id="summary" style="display: none;">
+            <h2>📊 Benchmark Summary</h2>
+            <div class="summary-grid" id="summaryGrid">
+                <!-- Summary statistics will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="wasm_exec.js"></script>
+    <script src="benchmarks_optimized.js"></script>
+    <script>
+        let wasmReady = false;
+        const benchmarkResults = {};
+        
+        // Initialize WebAssembly
+        const go = new Go();
+        WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+            go.run(result.instance);
+            wasmReady = true;
+            document.getElementById('status').className = 'status ready';
+            document.getElementById('status').textContent = '✅ WebAssembly module loaded and ready!';
+            document.getElementById('runBenchmark').disabled = false;
+        }).catch((err) => {
+            console.error("Failed to load WebAssembly:", err);
+            document.getElementById('status').className = 'status error';
+            document.getElementById('status').textContent = '❌ Failed to load WebAssembly: ' + err.message;
+        });
+
+        // Benchmark functions
+        const benchmarks = [
+            {
+                name: 'Matrix Multiplication',
+                icon: '🔢',
+                tests: [
+                    { name: 'JavaScript', fn: 'matrixMultiplyJS' },
+                    { name: 'Single-Thread WASM', fn: 'matrixMultiplyWasm' },
+                    { name: 'Concurrent WASM', fn: 'matrixMultiplyConcurrentWasm' }
+                ],
+                setup: () => {
+                    const size = parseInt(document.getElementById('matrixSize').value);
+                    const matrixA = new Array(size * size);
+                    const matrixB = new Array(size * size);
+                    for (let i = 0; i < size * size; i++) {
+                        matrixA[i] = Math.random();
+                        matrixB[i] = Math.random();
+                    }
+                    return { matrixA, matrixB, size };
+                }
+            },
+            {
+                name: 'Mandelbrot Set',
+                icon: '🌀',
+                tests: [
+                    { name: 'JavaScript', fn: 'mandelbrotJSOptimized' },
+                    { name: 'Single-Thread WASM', fn: 'mandelbrotWasm' },
+                    { name: 'Concurrent WASM', fn: 'mandelbrotConcurrentWasm' }
+                ],
+                setup: () => {
+                    const sizeStr = document.getElementById('mandelbrotSize').value;
+                    const width = parseInt(sizeStr.replace(/\D/g, ''));
+                    
+                    if (isNaN(width) || width <= 0) {
+                        throw new Error('Invalid dimensions');
+                    }
+                    
+                    // Calculate height based on 4:3 aspect ratio
+                    const height = Math.floor(width * 0.75);
+                    
+                    return { 
+                        width, 
+                        height,
+                        xmin: -2.5, 
+                        xmax: 1.5, 
+                        ymin: -1.5, 
+                        ymax: 1.5,
+                        maxIter: 150
+                    };
+                }
+            },
+            {
+                name: 'Cryptographic Hash',
+                icon: '🔐',
+                tests: [
+                    { name: 'JavaScript', fn: 'hashJS' },
+                    { name: 'Single-Thread WASM', fn: 'sha256HashWasm' },
+                    { name: 'Concurrent WASM', fn: 'sha256HashConcurrentWasm' }
+                ],
+                setup: () => {
+                    const iterations = parseInt(document.getElementById('hashIterations').value);
+                    const data = 'The quick brown fox jumps over the lazy dog. '.repeat(10);
+                    return { data, iterations };
+                }
+            },
+            {
+                name: 'Ray Tracing',
+                icon: '🎨',
+                tests: [
+                    { name: 'JavaScript', fn: 'rayTracingJS' },
+                    { name: 'Single-Thread WASM', fn: 'rayTracingWasm' },
+                    { name: 'Concurrent WASM', fn: 'rayTracingConcurrentWasm' }
+                ],
+                setup: () => {
+                    return { width: 200, height: 150, samples: 10 };
+                }
+            }
+        ];
+
+        async function runAllBenchmarks() {
+            if (!wasmReady) {
+                alert('WebAssembly module not loaded yet. Please wait.');
+                return;
+            }
+
+            // Clear previous results
+            document.getElementById('benchmarkResults').innerHTML = '';
+            document.getElementById('summary').style.display = 'none';
+            // Clear the benchmarkResults object
+            Object.keys(benchmarkResults).forEach(key => delete benchmarkResults[key]);
+
+            // Show progress bar
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.display = 'block';
+            
+            const iterations = parseInt(document.getElementById('iterations').value);
+            const totalTests = benchmarks.length * 3 * iterations;
+            let completedTests = 0;
+
+            function updateProgress() {
+                completedTests++;
+                const progress = Math.round((completedTests / totalTests) * 100);
+                const progressFill = document.getElementById('progressFill');
+                progressFill.style.width = progress + '%';
+                progressFill.textContent = progress + '%';
+            }
+
+            // Run each benchmark
+            for (const benchmark of benchmarks) {
+                const card = createBenchmarkCard(benchmark.name, benchmark.icon);
+                document.getElementById('benchmarkResults').appendChild(card);
+                
+                const params = benchmark.setup();
+                const results = [];
+
+                // Run each test variant
+                for (const test of benchmark.tests) {
+                    const times = [];
+                    const fn = window[test.fn];
+                    
+                    if (!fn) {
+                        console.error(`Function ${test.fn} not found`);
+                        results.push({ name: test.name, avg: 0, times: [] });
+                        continue;
+                    }
+
+                    // Warm-up run
+                    try {
+                        if (benchmark.name === 'Matrix Multiplication') {
+                            fn(params.matrixA, params.matrixB, params.size);
+                        } else if (benchmark.name === 'Mandelbrot Set') {
+                            fn(params.width, params.height, params.xmin, params.xmax, params.ymin, params.ymax, params.maxIter);
+                        } else if (benchmark.name === 'Cryptographic Hash') {
+                            fn(params.data, params.iterations);
+                        } else if (benchmark.name === 'Ray Tracing') {
+                            fn(params.width, params.height, params.samples);
+                        }
+                    } catch (e) {
+                        console.error('Warm-up error:', e);
+                    }
+
+                    // Timed runs
+                    for (let i = 0; i < iterations; i++) {
+                        try {
+                            const start = performance.now();
+                            
+                            if (benchmark.name === 'Matrix Multiplication') {
+                                fn(params.matrixA, params.matrixB, params.size);
+                            } else if (benchmark.name === 'Mandelbrot Set') {
+                                fn(params.width, params.height, params.xmin, params.xmax, params.ymin, params.ymax, params.maxIter);
+                            } else if (benchmark.name === 'Cryptographic Hash') {
+                                fn(params.data, params.iterations);
+                            } else if (benchmark.name === 'Ray Tracing') {
+                                fn(params.width, params.height, params.samples);
+                            }
+                            
+                            const time = performance.now() - start;
+                            times.push(time);
+                            updateProgress();
+                        } catch (e) {
+                            console.error('Test error:', e);
+                            updateProgress();
+                        }
+                    }
+
+                    const avg = times.reduce((a, b) => a + b, 0) / times.length;
+                    results.push({ name: test.name, avg, times });
+                }
+
+                // Update card with results
+                updateBenchmarkCard(card, results);
+                benchmarkResults[benchmark.name] = results;
+            }
+
+            // Hide progress bar and show summary
+            progressBar.style.display = 'none';
+            showSummary();
+        }
+
+        function createBenchmarkCard(name, icon) {
+            const card = document.createElement('div');
+            card.className = 'benchmark-card';
+            card.innerHTML = `
+                <h2>${icon} ${name}</h2>
+                <div class="benchmark-results">
+                    <div class="result-row">
+                        <div class="result-label">Implementation</div>
+                        <div class="result-time">Avg Time</div>
+                        <div class="result-speedup">vs JavaScript</div>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        function updateBenchmarkCard(card, results) {
+            const resultsDiv = card.querySelector('.benchmark-results');
+            const jsTime = results.find(r => r.name === 'JavaScript').avg;
+
+            results.forEach(result => {
+                const speedup = jsTime / result.avg;
+                const row = document.createElement('div');
+                row.className = 'result-row';
+                
+                let speedupClass = '';
+                let speedupText = '';
+                
+                if (result.name === 'JavaScript') {
+                    speedupText = '(baseline)';
+                } else {
+                    speedupClass = speedup > 1 ? 'speedup-positive' : 'speedup-negative';
+                    speedupText = speedup > 1 ? 
+                        `${speedup.toFixed(2)}x faster` : 
+                        `${(1/speedup).toFixed(2)}x slower`;
+                }
+
+                row.innerHTML = `
+                    <div class="result-label">${result.name}</div>
+                    <div class="result-time">${result.avg.toFixed(1)}ms</div>
+                    <div class="result-speedup ${speedupClass}">${speedupText}</div>
+                `;
+                resultsDiv.appendChild(row);
+            });
+        }
+
+        function showSummary() {
+            const summaryDiv = document.getElementById('summary');
+            const summaryGrid = document.getElementById('summaryGrid');
+            summaryDiv.style.display = 'block';
+            summaryGrid.innerHTML = '';
+
+            // Calculate overall statistics
+            const stats = {
+                singleThreadSpeedup: [],
+                concurrentSpeedup: [],
+                concurrentVsSingle: []
+            };
+
+            Object.values(benchmarkResults).forEach(results => {
+                // Ensure results is an array
+                if (!Array.isArray(results)) {
+                    console.error('Invalid results format:', results);
+                    return;
+                }
+                
+                const jsResult = results.find(r => r.name === 'JavaScript');
+                const singleResult = results.find(r => r.name === 'Single-Thread WASM');
+                const concurrentResult = results.find(r => r.name === 'Concurrent WASM');
+                
+                if (jsResult && singleResult && concurrentResult) {
+                    const js = jsResult.avg;
+                    const single = singleResult.avg;
+                    const concurrent = concurrentResult.avg;
+
+                    stats.singleThreadSpeedup.push(js / single);
+                    stats.concurrentSpeedup.push(js / concurrent);
+                    stats.concurrentVsSingle.push(single / concurrent);
+                }
+            });
+
+            // Create summary cards
+            const summaryData = [
+                {
+                    title: 'Avg Single-Thread Speedup',
+                    value: average(stats.singleThreadSpeedup).toFixed(2) + 'x',
+                    color: '#2196F3'
+                },
+                {
+                    title: 'Avg Concurrent Speedup',
+                    value: average(stats.concurrentSpeedup).toFixed(2) + 'x',
+                    color: '#4CAF50'
+                },
+                {
+                    title: 'Concurrent vs Single-Thread',
+                    value: average(stats.concurrentVsSingle).toFixed(2) + 'x',
+                    color: '#FF9800'
+                },
+                {
+                    title: 'Best Improvement',
+                    value: (stats.concurrentSpeedup.length > 0 ? Math.max(...stats.concurrentSpeedup).toFixed(2) : '0.00') + 'x',
+                    color: '#9C27B0'
+                }
+            ];
+
+            summaryData.forEach(data => {
+                const card = document.createElement('div');
+                card.className = 'summary-card';
+                card.innerHTML = `
+                    <h3>${data.title}</h3>
+                    <div class="summary-value" style="color: ${data.color}">${data.value}</div>
+                `;
+                summaryGrid.appendChild(card);
+            });
+        }
+
+        function average(arr) {
+            if (!arr || arr.length === 0) return 0;
+            return arr.reduce((a, b) => a + b, 0) / arr.length;
+        }
+
+        // JavaScript implementations of benchmark functions
+        function matrixMultiplyJS(matrixA, matrixB, size) {
+            const result = new Array(size * size);
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    let sum = 0;
+                    for (let k = 0; k < size; k++) {
+                        sum += matrixA[i * size + k] * matrixB[k * size + j];
+                    }
+                    result[i * size + j] = sum;
+                }
+            }
+            return result;
+        }
+
+        function hashJS(data, iterations) {
+            let hash = 0x12345678;
+            for (let iter = 0; iter < iterations; iter++) {
+                for (let i = 0; i < data.length; i++) {
+                    hash = hash * 33 + data.charCodeAt(i);
+                    hash = ((hash << 5) | (hash >>> 27)) >>> 0;
+                }
+            }
+            return hash;
+        }
+
+        function rayTracingJS(width, height, samples) {
+            const result = new Array(width * height * 3);
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const nx = (x / width) * 2.0 - 1.0;
+                    const ny = (y / height) * 2.0 - 1.0;
+                    
+                    let r = 0, g = 0, b = 0;
+                    
+                    for (let s = 0; s < samples; s++) {
+                        // Simplified ray tracing logic
+                        const t = Math.sqrt(nx * nx + ny * ny);
+                        r += Math.min(1, t);
+                        g += Math.min(1, t * 0.7);
+                        b += Math.min(1, t * 0.5);
+                    }
+                    
+                    const idx = (y * width + x) * 3;
+                    result[idx] = r / samples;
+                    result[idx + 1] = g / samples;
+                    result[idx + 2] = b / samples;
+                }
+            }
+            
+            return result;
+        }
+    </script>
+</body>
+</html>

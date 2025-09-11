@@ -26,12 +26,19 @@ This project showcases how Go and WebAssembly can bridge the gap between fronten
 ## 📁 **Project Structure**
 
 ```
-go-prime-wasm/
-├── shared_models.go      # 💎 Shared business logic & models
+go-wasm-demo/
 ├── main_wasm.go         # 🌐 WebAssembly entry point  
 ├── main_server.go       # 🖥️  Backend server entry point
+├── shared_models.go      # 💎 Shared business logic & models
+├── benchmarks*.go       # 📊 Benchmark implementations
 ├── index.html          # 🎨 Interactive web demo
-├── server.html         # 📊 Server dashboard comparison
+├── server.html         # 📊 Server dashboard
+├── performance_benchmarks.html # 🚀 Performance comparison
+├── build.sh            # 🔨 Build script
+├── docs/               # 📚 Documentation
+│   ├── optimizations/  # Performance optimization guides
+│   ├── presentations/  # Project presentations
+│   └── summaries/      # Development summaries
 └── wasm_exec.js        # 🔧 Go WASM runtime
 ```
 

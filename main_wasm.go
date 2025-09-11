@@ -4,6 +4,7 @@ package main
 
 import (
 	"encoding/json"
+	"runtime"
 	"syscall/js"
 )
 
@@ -15,12 +16,37 @@ func main() {
 	js.Global().Set("recommendProductsWasm", js.FuncOf(recommendProductsWasm))
 	js.Global().Set("analyzeUserBehaviorWasm", js.FuncOf(analyzeUserBehaviorWasm))
 
-	// Performance benchmark functions
-	js.Global().Set("mandelbrotWasm", js.FuncOf(mandelbrotWasmSuperOptimized))
-	js.Global().Set("matrixMultiplyWasm", js.FuncOf(matrixMultiplyWasmOptimized))
-	js.Global().Set("sha256HashWasm", js.FuncOf(sha256HashWasmOptimized))
-	js.Global().Set("rayTracingWasm", js.FuncOf(rayTracingWasm))
+	// Performance benchmark functions - Single-threaded versions
+	js.Global().Set("mandelbrotWasm", js.FuncOf(mandelbrotWasmSingle))
+	js.Global().Set("matrixMultiplyWasm", js.FuncOf(matrixMultiplyWasmSingle))
+	js.Global().Set("sha256HashWasm", js.FuncOf(sha256HashWasmSingle))
+	js.Global().Set("rayTracingWasm", js.FuncOf(rayTracingWasmSingle))
+	
+	// Optimized single-threaded versions
+	js.Global().Set("mandelbrotWasmOptimized", js.FuncOf(mandelbrotWasmSuperOptimized))
+	js.Global().Set("matrixMultiplyWasmOptimized", js.FuncOf(matrixMultiplyWasmOptimized))
+	js.Global().Set("sha256HashWasmOptimized", js.FuncOf(sha256HashWasmOptimized))
+	
+	// Optimized concurrent versions - Single best implementations
+	js.Global().Set("matrixMultiplyOptimizedWasm", js.FuncOf(matrixMultiplyOptimizedWasm))
+	js.Global().Set("sha256HashOptimizedWasm", js.FuncOf(sha256HashOptimizedWasm))
+	js.Global().Set("mandelbrotOptimizedWasm", js.FuncOf(mandelbrotOptimizedWasm))
+	js.Global().Set("rayTracingOptimizedWasm", js.FuncOf(rayTracingOptimizedWasm))
+	
+	// Maintain backwards compatibility with existing names
+	js.Global().Set("matrixMultiplyConcurrentWasm", js.FuncOf(matrixMultiplyOptimizedWasm))
+	js.Global().Set("sha256HashConcurrentWasm", js.FuncOf(sha256HashOptimizedWasm))
+	js.Global().Set("mandelbrotConcurrentWasm", js.FuncOf(mandelbrotOptimizedWasm))
+	js.Global().Set("rayTracingConcurrentWasm", js.FuncOf(rayTracingOptimizedWasm))
 
+	// Debug function to check concurrency
+	js.Global().Set("debugConcurrency", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		return map[string]interface{}{
+			"GOMAXPROCS": runtime.GOMAXPROCS(0),
+			"NumCPU":     runtime.NumCPU(),
+		}
+	}))
+	
 	// Keep the program running
 	select {}
 }
