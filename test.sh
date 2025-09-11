@@ -135,7 +135,7 @@ $ECHO_CMD "${YELLOW}════════════════════
 $ECHO_CMD "${YELLOW}🔧 BUILD VERIFICATION${NC}"
 $ECHO_CMD "${YELLOW}═══════════════════════════════════════${NC}"
 
-run_test "WebAssembly Build" "GOOS=js GOARCH=wasm go build -o test_main.wasm main_wasm.go shared_models.go benchmarks.go benchmarks_wasm.go benchmarks_types.go benchmarks_comprehensive.go benchmarks_optimized.go mandelbrot.go mandelbrot_concurrent.go"
+run_test "WebAssembly Build" "GOOS=js GOARCH=wasm go build -o test_main.wasm main_wasm.go shared_models.go benchmarks.go benchmarks_wasm.go benchmarks_types.go benchmarks_comprehensive.go benchmarks_optimized.go benchmarks_shared.go mandelbrot.go mandelbrot_concurrent.go"
 run_test "Server Build" "go build -o test_server main_server.go shared_models.go benchmarks.go"
 run_test "Test Compilation" "go test -c -o test_binary"
 

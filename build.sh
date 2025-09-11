@@ -35,7 +35,7 @@ $ECHO_CMD "🚀 Building WebAssembly in Go: Bridging Web and Backend"
 $ECHO_CMD "======================================================="
 
 $ECHO_CMD "${BLUE}📦 Building WebAssembly module...${NC}"
-GOOS=js GOARCH=wasm go build -o main.wasm main_wasm.go shared_models.go benchmarks.go benchmarks_wasm.go benchmarks_types.go benchmarks_comprehensive.go benchmarks_optimized.go mandelbrot.go mandelbrot_concurrent.go
+GOOS=js GOARCH=wasm go build -o main.wasm main_wasm.go shared_models.go benchmarks.go benchmarks_wasm.go benchmarks_types.go benchmarks_comprehensive.go benchmarks_optimized.go benchmarks_shared.go mandelbrot.go mandelbrot_concurrent.go
 
 if [ $? -eq 0 ]; then
     $ECHO_CMD "${GREEN}✅ WebAssembly module built successfully: main.wasm${NC}"
@@ -67,7 +67,7 @@ $ECHO_CMD "   ${CYAN}http://localhost:8181/server.html${NC} - Server API demo"
 $ECHO_CMD ""
 $ECHO_CMD "${YELLOW}🔧 Development Commands:${NC}"
 $ECHO_CMD "• Rebuild WebAssembly:"
-$ECHO_CMD "  ${CYAN}GOOS=js GOARCH=wasm go build -o main.wasm main_wasm.go shared_models.go benchmarks.go benchmarks_wasm.go benchmarks_types.go benchmarks_comprehensive.go benchmarks_optimized.go mandelbrot.go mandelbrot_concurrent.go${NC}"
+$ECHO_CMD "  ${CYAN}GOOS=js GOARCH=wasm go build -o main.wasm main_wasm.go shared_models.go benchmarks.go benchmarks_wasm.go benchmarks_types.go benchmarks_comprehensive.go benchmarks_optimized.go benchmarks_shared.go mandelbrot.go mandelbrot_concurrent.go${NC}"
 $ECHO_CMD ""
 $ECHO_CMD "• Rebuild Server:"
 $ECHO_CMD "  ${CYAN}go build -o server main_server.go shared_models.go benchmarks.go${NC}"
