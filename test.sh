@@ -79,7 +79,7 @@ $ECHO_CMD "${YELLOW}📝 UNIT TESTS - BUSINESS LOGIC${NC}"
 $ECHO_CMD "${YELLOW}═══════════════════════════════════════${NC}"
 
 run_test "User Validation Logic" "go test -v -run TestValidateUser"
-run_test "Product Validation Logic" "go test -v -run TestValidateProduct" 
+run_test "Product Validation Logic" "go test -v -run TestValidateProduct"
 run_test "Order Calculation Logic" "go test -v -run TestCalculateOrderTotal"
 run_test "Tax Rate Calculation" "go test -v -run TestGetTaxRate"
 run_test "Shipping Calculation" "go test -v -run TestCalculateShipping"
@@ -135,8 +135,8 @@ $ECHO_CMD "${YELLOW}════════════════════
 $ECHO_CMD "${YELLOW}🔧 BUILD VERIFICATION${NC}"
 $ECHO_CMD "${YELLOW}═══════════════════════════════════════${NC}"
 
-run_test "WebAssembly Build" "GOOS=js GOARCH=wasm go build -o test_main.wasm main_wasm.go shared_models.go benchmarks.go benchmarks_wasm.go benchmarks_types.go benchmarks_comprehensive.go benchmarks_optimized.go benchmarks_shared.go mandelbrot.go mandelbrot_concurrent.go"
-run_test "Server Build" "go build -o test_server main_server.go shared_models.go benchmarks.go"
+run_test "WebAssembly Build" "GOOS=js GOARCH=wasm go build -o test_main.wasm main_wasm.go shared_models.go benchmarks_wasm.go benchmarks_types.go benchmarks_comprehensive.go benchmarks_optimized.go benchmarks_shared.go mandelbrot.go mandelbrot_concurrent.go"
+run_test "Server Build" "go build -o test_server main_server.go shared_models.go"
 run_test "Test Compilation" "go test -c -o test_binary"
 
 # Clean up build artifacts

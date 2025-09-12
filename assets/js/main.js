@@ -180,7 +180,15 @@ function getRecommendationsWasmButton() {
 	);
 
 	const parsedResult = (typeof result === 'string') ? JSON.parse(result) : result;
-	displayRecommendations('recommendationResults', parsedResult, '🌐 WebAssembly Client-Side Recommendations');
+	
+	// WASM function returns an object with error and recommendations fields
+	if (parsedResult.error && parsedResult.error !== "") {
+	    displayError('recommendationResults', new Error(parsedResult.error));
+	} else {
+	    // Extract the recommendations array from the WASM response
+	    const recommendations = parsedResult.recommendations || parsedResult;
+	    displayRecommendations('recommendationResults', recommendations, '🌐 WebAssembly Client-Side Recommendations');
+	}
     } catch (error) {
 	displayError('recommendationResults', error);
     }
