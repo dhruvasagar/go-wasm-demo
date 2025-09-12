@@ -1,5 +1,4 @@
 // Performance Benchmarks JavaScript
-let wasmReady = false;
 const benchmarkResults = {};
 
 // Loading overlay functions
@@ -93,14 +92,11 @@ document.addEventListener('DOMContentLoaded', function() {
         updateLoadingProgress(wasmProgress, 100, 'WebAssembly', 'Loading module...');
     }, 200);
     
-    // Initialize WebAssembly
-    const go = new Go();
-    WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+    // Initialize WebAssembly using shared function
+    window.initWasm().then(() => {
         clearInterval(wasmProgressInterval);
         updateLoadingProgress(100, 100, 'WebAssembly', 'Module loaded successfully!');
         
-        go.run(result.instance);
-        wasmReady = true;
         document.getElementById('status').className = 'status ready';
         document.getElementById('status').textContent = '✅ WebAssembly module loaded and ready!';
         document.getElementById('runBenchmark').disabled = false;
@@ -132,7 +128,7 @@ const benchmarks = [
         name: 'Matrix Multiplication',
         icon: '🔢',
         tests: [
-            { name: 'JavaScript', fn: 'matrixMultiplyJS' },
+            { name: 'JavaScript', fn: 'matrixMultiplyJSOptimized' },
             { name: 'Single-Thread WASM', fn: 'matrixMultiplyWasm' },
             { name: 'Concurrent WASM', fn: 'matrixMultiplyConcurrentWasm' }
         ],
@@ -181,7 +177,7 @@ const benchmarks = [
         name: 'Cryptographic Hash',
         icon: '🔐',
         tests: [
-            { name: 'JavaScript', fn: 'hashJS' },
+            { name: 'JavaScript', fn: 'sha256HashJSOptimized' },
             { name: 'Single-Thread WASM', fn: 'sha256HashWasm' },
             { name: 'Concurrent WASM', fn: 'sha256HashConcurrentWasm' }
         ],
@@ -195,7 +191,7 @@ const benchmarks = [
         name: 'Ray Tracing',
         icon: '🎨',
         tests: [
-            { name: 'JavaScript', fn: 'rayTracingJS' },
+            { name: 'JavaScript', fn: 'rayTracingJSOptimized' },
             { name: 'Single-Thread WASM', fn: 'rayTracingWasm' },
             { name: 'Concurrent WASM', fn: 'rayTracingConcurrentWasm' }
         ],
@@ -206,7 +202,7 @@ const benchmarks = [
 ];
 
 async function runAllBenchmarks() {
-    if (!wasmReady) {
+    if (!window.isWasmReady()) {
         alert('WebAssembly module not loaded yet. Please wait.');
         return;
     }
@@ -445,56 +441,4 @@ function average(arr) {
     return arr.reduce((a, b) => a + b, 0) / arr.length;
 }
 
-// JavaScript implementations of benchmark functions
-function matrixMultiplyJS(matrixA, matrixB, size) {
-    const result = new Array(size * size);
-    for (let i = 0; i < size; i++) {
-        for (let j = 0; j < size; j++) {
-            let sum = 0;
-            for (let k = 0; k < size; k++) {
-                sum += matrixA[i * size + k] * matrixB[k * size + j];
-            }
-            result[i * size + j] = sum;
-        }
-    }
-    return result;
-}
-
-function hashJS(data, iterations) {
-    let hash = 0x12345678;
-    for (let iter = 0; iter < iterations; iter++) {
-        for (let i = 0; i < data.length; i++) {
-            hash = hash * 33 + data.charCodeAt(i);
-            hash = ((hash << 5) | (hash >>> 27)) >>> 0;
-        }
-    }
-    return hash;
-}
-
-function rayTracingJS(width, height, samples) {
-    const result = new Array(width * height * 3);
-    
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const nx = (x / width) * 2.0 - 1.0;
-            const ny = (y / height) * 2.0 - 1.0;
-            
-            let r = 0, g = 0, b = 0;
-            
-            for (let s = 0; s < samples; s++) {
-                // Simplified ray tracing logic
-                const t = Math.sqrt(nx * nx + ny * ny);
-                r += Math.min(1, t);
-                g += Math.min(1, t * 0.7);
-                b += Math.min(1, t * 0.5);
-            }
-            
-            const idx = (y * width + x) * 3;
-            result[idx] = r / samples;
-            result[idx + 1] = g / samples;
-            result[idx + 2] = b / samples;
-        }
-    }
-    
-    return result;
-}
+// JavaScript implementations are now in shared-benchmarks.js

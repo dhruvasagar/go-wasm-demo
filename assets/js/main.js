@@ -1,13 +1,8 @@
-let wasmReady = false;
-
-// Initialize WebAssembly
-const go = new Go();
-WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
-    go.run(result.instance);
-    wasmReady = true;
-    console.log("✅ WebAssembly module loaded and ready!");
+// Initialize WebAssembly using shared function
+window.initWasm().then(() => {
+    console.log("✅ WebAssembly initialized for main page!");
 }).catch((err) => {
-    console.error("❌ Failed to load WebAssembly:", err);
+    console.error("❌ Failed to initialize WebAssembly:", err);
 });
 
 // Demo data
@@ -21,7 +16,7 @@ const demoProducts = [
 
 // User validation functions
 function validateUserWasmButton() {
-    if (!wasmReady) {
+    if (!window.isWasmReady()) {
 	document.getElementById('userResults').className = 'results error';
 	document.getElementById('userResults').textContent = 'WebAssembly not ready yet. Please wait...';
 	return;
@@ -65,7 +60,7 @@ function validateUserServer() {
 
 // Product validation functions
 function validateProductWasmButton() {
-    if (!wasmReady) {
+    if (!window.isWasmReady()) {
 	document.getElementById('productResults').className = 'results error';
 	document.getElementById('productResults').textContent = 'WebAssembly not ready yet. Please wait...';
 	return;
@@ -109,7 +104,7 @@ function validateProductServer() {
 
 // Order calculation functions
 function calculateOrderWasmButton() {
-    if (!wasmReady) {
+    if (!window.isWasmReady()) {
 	document.getElementById('orderResults').className = 'results error';
 	document.getElementById('orderResults').textContent = 'WebAssembly not ready yet. Please wait...';
 	return;
@@ -162,7 +157,7 @@ function calculateOrderServer() {
 
 // Recommendation functions
 function getRecommendationsWasmButton() {
-    if (!wasmReady) {
+    if (!window.isWasmReady()) {
 	document.getElementById('recommendationResults').className = 'results error';
 	document.getElementById('recommendationResults').textContent = 'WebAssembly not ready yet. Please wait...';
 	return;
@@ -423,7 +418,7 @@ function displayPerformanceComparison(elementId, jsDuration, wasmDuration) {
 
 // Comprehensive benchmark functions for 3-way comparison
 function benchmarkMatrixComprehensive() {
-    if (!wasmReady) {
+    if (!window.isWasmReady()) {
 	document.getElementById('matrixResults').className = 'results error';
 	document.getElementById('matrixResults').textContent = 'WebAssembly not ready yet. Please wait...';
 	return;
@@ -473,7 +468,7 @@ function benchmarkMatrixComprehensive() {
 }
 
 function benchmarkMandelbrotComprehensive() {
-    if (!wasmReady) {
+    if (!window.isWasmReady()) {
 	document.getElementById('mandelbrotResults').className = 'results error';
 	document.getElementById('mandelbrotResults').textContent = 'WebAssembly not ready yet. Please wait...';
 	return;
@@ -544,7 +539,7 @@ function benchmarkMandelbrotComprehensive() {
 }
 
 function benchmarkHashComprehensive() {
-    if (!wasmReady) {
+    if (!window.isWasmReady()) {
 	document.getElementById('hashResults').className = 'results error';
 	document.getElementById('hashResults').textContent = 'WebAssembly not ready yet. Please wait...';
 	return;
@@ -590,7 +585,7 @@ function benchmarkHashComprehensive() {
 }
 
 function benchmarkRayTracingComprehensive() {
-    if (!wasmReady) {
+    if (!window.isWasmReady()) {
 	document.getElementById('rayTracingResults').className = 'results error';
 	document.getElementById('rayTracingResults').textContent = 'WebAssembly not ready yet. Please wait...';
 	return;
@@ -629,7 +624,7 @@ function benchmarkRayTracingComprehensive() {
     setTimeout(() => {
 	// JavaScript benchmark
 	const jsStart = performance.now();
-	rayTracingJS(width, height, samples);
+	rayTracingJSOptimized(width, height, samples);
 	const jsTime = performance.now() - jsStart;
 
 	// Single-threaded WASM benchmark
@@ -658,59 +653,9 @@ function benchmarkRayTracingComprehensive() {
     }, 10);
 }
 
-// Helper function to display three-way comparison
-function displayThreeWayComparison(elementId, jsTime, singleTime, concurrentTime) {
-    const maxTime = Math.max(jsTime, singleTime, concurrentTime);
-    const jsPercent = (jsTime / maxTime) * 100;
-    const singlePercent = (singleTime / maxTime) * 100;
-    const concurrentPercent = (concurrentTime / maxTime) * 100;
+// displayThreeWayComparison is now in shared-benchmarks.js
 
-    document.getElementById(elementId).innerHTML = `
-	<div class="performance-bar" style="margin: 5px 0;">
-	    <div class="performance-fill" style="width: ${jsPercent}%; background: #f39c12;"></div>
-	    <div class="performance-label" style="color: #333;">JavaScript</div>
-	</div>
-	<div class="performance-bar" style="margin: 5px 0;">
-	    <div class="performance-fill" style="width: ${singlePercent}%; background: #3498db;"></div>
-	    <div class="performance-label" style="color: #333;">Single WASM</div>
-	</div>
-	<div class="performance-bar" style="margin: 5px 0;">
-	    <div class="performance-fill" style="width: ${concurrentPercent}%; background: #27ae60;"></div>
-	    <div class="performance-label" style="color: #333;">Concurrent WASM</div>
-	</div>
-    `;
-}
-
-// JavaScript implementations for benchmarking
-function matrixMultiplyJS(matrixA, matrixB, size) {
-    const result = new Array(size * size);
-    for (let i = 0; i < size; i++) {
-	for (let j = 0; j < size; j++) {
-	    let sum = 0;
-	    for (let k = 0; k < size; k++) {
-		sum += matrixA[i * size + k] * matrixB[k * size + j];
-	    }
-	    result[i * size + j] = sum;
-	}
-    }
-    return result;
-}
-
-function hashJS(data, iterations) {
-    let hash = 0x12345678;
-    for (let iter = 0; iter < iterations; iter++) {
-	for (let i = 0; i < data.length; i++) {
-	    hash = hash * 33 + data.charCodeAt(i);
-	    hash = ((hash << 5) | (hash >>> 27)) >>> 0;
-	}
-    }
-    return hash;
-}
-
-function rayTracingJS(width, height, samples) {
-    // Use the optimized implementation that matches WASM complexity
-    return rayTracingJSOptimized(width, height, samples);
-}
+// JavaScript implementations are now in shared-benchmarks.js
 
 // Fill demo data on load
 window.addEventListener('load', () => {

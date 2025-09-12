@@ -1,10 +1,35 @@
-// Optimized JavaScript implementations for fair benchmark comparison
+// Shared benchmark functions for both index.html and performance_benchmarks.html
+// This file consolidates common benchmark logic to avoid duplication
+
+// ============================================================================
+// WASM INITIALIZATION AND STATUS
+// ============================================================================
+let wasmReady = false;
+
+function initializeWasm() {
+    const go = new Go();
+    return WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject)
+        .then((result) => {
+            go.run(result.instance);
+            wasmReady = true;
+            console.log("✅ WebAssembly module loaded and ready!");
+            return true;
+        })
+        .catch((err) => {
+            console.error("❌ Failed to load WebAssembly:", err);
+            throw err;
+        });
+}
+
+// ============================================================================
+// SHARED JAVASCRIPT IMPLEMENTATIONS (FOR FAIR COMPARISON)
+// ============================================================================
 
 // Optimized matrix multiplication with cache-friendly access pattern
-function matrixMultiplyJSOptimized(matrixA, matrixB, size) {
+function matrixMultiplyJSShared(matrixA, matrixB, size) {
     const result = new Float64Array(size * size);
     
-    // Use ikj loop order for better cache locality (no zero check for fair comparison)
+    // Use ikj loop order for better cache locality
     for (let i = 0; i < size; i++) {
         for (let k = 0; k < size; k++) {
             const aik = matrixA[i * size + k];
@@ -18,7 +43,7 @@ function matrixMultiplyJSOptimized(matrixA, matrixB, size) {
 }
 
 // Optimized Mandelbrot with typed arrays
-function mandelbrotJSOptimized(width, height, xmin, xmax, ymin, ymax, maxIter) {
+function mandelbrotJSShared(width, height, xmin, xmax, ymin, ymax, maxIter) {
     const result = new Int32Array(width * height);
     const dx = (xmax - xmin) / width;
     const dy = (ymax - ymin) / height;
@@ -56,7 +81,7 @@ function mandelbrotJSOptimized(width, height, xmin, xmax, ymin, ymax, maxIter) {
 }
 
 // Optimized hash function with loop unrolling
-function sha256HashJSOptimized(data, iterations) {
+function hashJSShared(data, iterations) {
     const dataBytes = new TextEncoder().encode(data);
     const dataLen = dataBytes.length;
     let hash = 0x12345678 >>> 0; // Ensure unsigned 32-bit
@@ -88,9 +113,9 @@ function sha256HashJSOptimized(data, iterations) {
     return hash | 0; // Convert to signed 32-bit
 }
 
-// FIXED: Optimized Ray Tracing implementation with proper complexity
-function rayTracingJSOptimized(width, height, samples) {
-    console.log(`[DEBUG] rayTracingJSOptimized called with ${width}x${height}, ${samples} samples - PROPER RAY TRACING VERSION`);
+// Fixed and optimized Ray Tracing implementation matching WASM complexity
+function rayTracingJSShared(width, height, samples) {
+    console.log(`[DEBUG] rayTracingJSShared called with ${width}x${height}, ${samples} samples`);
     const result = new Float64Array(width * height * 3);
 
     // Sphere properties (same as WASM implementation)
@@ -178,3 +203,55 @@ function rayTracingJSOptimized(width, height, samples) {
 
     return result;
 }
+
+// ============================================================================
+// SHARED RESULT DISPLAY FUNCTIONS
+// ============================================================================
+
+// Display three-way performance comparison
+function displayThreeWayComparison(elementId, jsTime, singleTime, concurrentTime) {
+    const maxTime = Math.max(jsTime, singleTime, concurrentTime);
+    const jsPercent = (jsTime / maxTime) * 100;
+    const singlePercent = (singleTime / maxTime) * 100;
+    const concurrentPercent = (concurrentTime / maxTime) * 100;
+
+    document.getElementById(elementId).innerHTML = `
+        <div class="performance-bar" style="margin: 5px 0;">
+            <div class="performance-fill" style="width: ${jsPercent}%; background: #f39c12;"></div>
+            <div class="performance-label" style="color: #333;">JavaScript</div>
+        </div>
+        <div class="performance-bar" style="margin: 5px 0;">
+            <div class="performance-fill" style="width: ${singlePercent}%; background: #3498db;"></div>
+            <div class="performance-label" style="color: #333;">Single WASM</div>
+        </div>
+        <div class="performance-bar" style="margin: 5px 0;">
+            <div class="performance-fill" style="width: ${concurrentPercent}%; background: #27ae60;"></div>
+            <div class="performance-label" style="color: #333;">Concurrent WASM</div>
+        </div>
+    `;
+}
+
+// ============================================================================
+// EXPORTED UTILITY FUNCTIONS
+// ============================================================================
+
+// Check if WebAssembly is ready
+window.isWasmReady = () => wasmReady;
+
+// Initialize WebAssembly (call this from your main scripts)
+window.initWasm = initializeWasm;
+
+// Export shared display functions
+window.displayThreeWayComparison = displayThreeWayComparison;
+
+// Export individual JS implementations for compatibility
+window.matrixMultiplyJSOptimized = matrixMultiplyJSShared;
+window.mandelbrotJSOptimized = mandelbrotJSShared;
+window.sha256HashJSOptimized = hashJSShared;
+window.rayTracingJSOptimized = rayTracingJSShared;
+
+// Export simpler names for convenience
+window.matrixMultiplyJS = matrixMultiplyJSShared;
+window.mandelbrotJS = mandelbrotJSShared;
+window.hashJS = hashJSShared;
+window.rayTracingJS = rayTracingJSShared;
