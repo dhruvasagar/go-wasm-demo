@@ -115,7 +115,6 @@ function hashJSShared(data, iterations) {
 
 // Fixed and optimized Ray Tracing implementation matching WASM complexity
 function rayTracingJSShared(width, height, samples) {
-    console.log(`[DEBUG] rayTracingJSShared called with ${width}x${height}, ${samples} samples`);
     const result = new Float64Array(width * height * 3);
 
     // Sphere properties (same as WASM implementation)

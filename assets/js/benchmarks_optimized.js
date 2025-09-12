@@ -90,7 +90,6 @@ function sha256HashJSOptimized(data, iterations) {
 
 // FIXED: Optimized Ray Tracing implementation with proper complexity
 function rayTracingJSOptimized(width, height, samples) {
-    console.log(`[DEBUG] rayTracingJSOptimized called with ${width}x${height}, ${samples} samples - PROPER RAY TRACING VERSION`);
     const result = new Float64Array(width * height * 3);
 
     // Sphere properties (same as WASM implementation)
