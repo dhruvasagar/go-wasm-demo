@@ -89,7 +89,7 @@ function validateEmail(email) {
 **Alex:** "There HAS to be a better way!" 
 *Thunder crashes dramatically outside*
 
-> **Presenter Notes:** This is based on actual code from our demo! Show the audience the `shared_models.go` file and point to the real `ValidateUser` function at line 42-75. Emphasize: "This exact scenario happened to us, which is why we built this demo." The email regex in our code is even more complex: `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$` - imagine keeping THAT in sync across platforms!
+> **Presenter Notes:** This is based on actual code from our demo! Show the audience the `src/shared_models.go` file and point to the real `ValidateUser` function at line 42-75. Emphasize: "This exact scenario happened to us, which is why we built this demo." The email regex in our code is even more complex: `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$` - imagine keeping THAT in sync across platforms!
 
 ---
 
@@ -184,7 +184,7 @@ func ValidateUser(user User) ValidationResult {
 }
 ```
 
-> **Presenter Notes:** Show the actual build process! Run `./build.sh` in your terminal during the presentation. Point out that our `shared_models.go` contains 400+ lines of identical business logic that runs in both browser and server. Key moment: Open the browser dev tools and show that `window.validateUserWasm` is available - actual Go code running in JavaScript!
+> **Presenter Notes:** Show the actual build process! Run `./build.sh` in your terminal during the presentation. Point out that our `src/shared_models.go` contains 400+ lines of identical business logic that runs in both browser and server. Key moment: Open the browser dev tools and show that `window.validateUserWasm` is available - actual Go code running in JavaScript!
 
 ---
 
@@ -271,10 +271,11 @@ return copyToJS(result)  // One batch return
 **Step 1: The Sacred Project Structure**
 ```bash
 go-wasm-demo/
-├── shared_models.go    # The source of truth (400+ lines!)
-├── main_wasm.go        # Browser warrior
-├── main_server.go      # Server sentinel
-├── mandelbrot.go       # Performance demos
+├── src/
+│   ├── shared_models.go    # The source of truth (400+ lines!)
+│   ├── main_wasm.go        # Browser warrior
+│   ├── main_server.go      # Server sentinel
+│   └── mandelbrot.go       # Performance demos
 ├── index.html          # Interactive showcase
 └── build.sh            # The bridge builder
 ```
@@ -293,7 +294,7 @@ func ValidateProduct(product Product) ValidationResult {
 }
 ```
 
-> **Presenter Notes:** Show the actual project structure! Our `shared_models.go` has 400+ lines including `ValidateUser`, `ValidateProduct`, `CalculateOrderTotal`, `RecommendProducts`, and `AnalyzeUserBehavior`. Point to specific functions. Run `wc -l shared_models.go` to show the line count. Emphasize: "This is production-ready business logic, not toy examples."
+> **Presenter Notes:** Show the actual project structure! Our `src/shared_models.go` has 400+ lines including `ValidateUser`, `ValidateProduct`, `CalculateOrderTotal`, `RecommendProducts`, and `AnalyzeUserBehavior`. Point to specific functions. Run `wc -l src/shared_models.go` to show the line count. Emphasize: "This is production-ready business logic, not toy examples."
 
 ---
 
@@ -373,7 +374,7 @@ if (!navigator.onLine) {
 **Alex's Wisdom:**
 
 1. **Write Once, Run Everywhere** (but for real this time)
-   - Our 400+ lines of `shared_models.go` run identically in browser & server
+   - Our 400+ lines of `src/shared_models.go` run identically in browser & server
    - 5 major business functions: validation, pricing, recommendations, analytics
    
 2. **Performance That's Contextual**
@@ -414,7 +415,7 @@ if (!navigator.onLine) {
    - Analytics and reporting functions
 
 3. **Build Your Bridge**
-   - One codebase (your `shared_models.go`)
+   - One codebase (your `src/shared_models.go`)
    - Multiple platforms (browser via WASM, server natively)
    - Infinite possibilities (offline PWAs, edge functions, mobile apps)
 
@@ -498,7 +499,7 @@ for _, resource := range resources {
 A: "Yes, our WASM file is ~2MB, but it replaces potentially thousands of lines of duplicated logic. Plus, it compresses well and enables offline functionality. It's about value, not just size."
 
 **Q: "How do you handle debugging WASM?"**
-A: "Debug your business logic in Go with excellent tooling, then deploy to WASM. Most bugs happen in business logic, not the WASM boundary. We test our shared_models.go with standard Go tests."
+A: "Debug your business logic in Go with excellent tooling, then deploy to WASM. Most bugs happen in business logic, not the WASM boundary. We test our src/shared_models.go with standard Go tests."
 
 **Q: "What about browser compatibility?"**
 A: "WebAssembly is supported in all modern browsers (95%+ coverage). For older browsers, you can fallback to JavaScript implementations or use polyfills."

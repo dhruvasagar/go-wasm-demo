@@ -38,21 +38,21 @@ This project includes a comprehensive testing suite to ensure the shared busines
 ### **Run Specific Test Categories**
 ```bash
 # Unit tests only
-go test -v -run TestValidate
+go test -C src -v -run TestValidate
 
 # Integration tests only  
-go test -v -run TestServer
+go test -C src -v -run TestServer
 
 # Performance benchmarks
-go test -bench=. -benchmem
+go test -C src -bench=. -benchmem
 
 # Algorithm correctness
-go test -v -run TestMatrix
+go test -C src -v -run TestMatrix
 ```
 
 ## 📊 **Test Categories**
 
-### **1. Business Logic Unit Tests** (`shared_models_test.go`)
+### **1. Business Logic Unit Tests** (`src/shared_models_test.go`)
 
 #### **User Validation Tests**
 ```go
@@ -126,7 +126,7 @@ func TestAnalyzeUserBehavior(t *testing.T) {
 }
 ```
 
-### **2. Integration Tests** (`integration_test.go`)
+### **2. Integration Tests** (`src/src/integration_test.go`)
 
 #### **HTTP API Endpoint Tests**
 Tests that server endpoints use identical business logic:
@@ -169,7 +169,7 @@ func TestDataConsistency(t *testing.T) {
 }
 ```
 
-### **3. Algorithm Correctness Tests** (`benchmarks_test.go`)
+### **3. Algorithm Correctness Tests** (`src/src/benchmarks_test.go`)
 
 #### **Matrix Multiplication Verification**
 ```go
@@ -255,13 +255,13 @@ func TestPerformanceRegression(t *testing.T) {
 #### **Build Verification**
 ```bash
 # WebAssembly compilation
-GOOS=js GOARCH=wasm go build -o main.wasm
+GOOS=js GOARCH=wasm go build -o main.wasm src/main_wasm.go src/shared_models.go src/benchmarks_*.go src/mandelbrot*.go
 
 # Server compilation  
-go build -o server main_server.go shared_models.go
+go build -o server src/main_server.go src/shared_models.go
 
 # Test compilation
-go test -c
+go test -C src -c
 ```
 
 #### **Code Quality Checks**
@@ -273,7 +273,7 @@ gofmt -l .
 go vet ./...
 
 # Test coverage
-go test -cover -coverprofile=coverage.out
+go test -C src -cover -coverprofile=coverage.out
 go tool cover -html=coverage.out
 ```
 
@@ -287,13 +287,13 @@ go tool cover -html=coverage.out
 
 ### **Coverage Report Example**
 ```
-shared_models.go:45:    ValidateUser           100.0%
-shared_models.go:78:    ValidateProduct        100.0%
-shared_models.go:112:   CalculateOrderTotal     95.2%
-shared_models.go:145:   GetTaxRate             100.0%
-shared_models.go:167:   CalculateShipping       92.3%
-shared_models.go:203:   RecommendProducts       88.7%
-shared_models.go:267:   AnalyzeUserBehavior     91.4%
+src/shared_models.go:45:    ValidateUser           100.0%
+src/shared_models.go:78:    ValidateProduct        100.0%
+src/shared_models.go:112:   CalculateOrderTotal     95.2%
+src/shared_models.go:145:   GetTaxRate             100.0%
+src/shared_models.go:167:   CalculateShipping       92.3%
+src/shared_models.go:203:   RecommendProducts       88.7%
+src/shared_models.go:267:   AnalyzeUserBehavior     91.4%
 Total Coverage:         94.1%
 ```
 

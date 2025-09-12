@@ -11,7 +11,7 @@
 ## 🛠️ **Issues Found & Fixed**
 
 ### 1. **Empty Benchmark File** ✅ **FIXED**
-**Issue:** `benchmarks.go` was nearly empty but still included in builds
+**Issue:** `src/benchmarks_*.go` was nearly empty but still included in builds
 **Fix:** Added proper documentation explaining the file's purpose
 
 ### 2. **Missing Input Validation in WebAssembly Functions** ✅ **FIXED**
@@ -23,7 +23,7 @@
 - Consistent error handling patterns
 
 **Files Modified:**
-- `main_wasm.go` - Enhanced `validateUserWasm()`, `validateProductWasm()`, `calculateOrderTotalWasm()`
+- `src/main_wasm.go` - Enhanced `validateUserWasm()`, `validateProductWasm()`, `calculateOrderTotalWasm()`
 
 ### 3. **Insufficient Server-Side Validation** ✅ **FIXED**
 **Issue:** HTTP handlers lacked proper request validation and security measures
@@ -35,7 +35,7 @@
 - Proper error handling in JSON encoding
 
 **Files Modified:**
-- `main_server.go` - Enhanced `handleValidateUser()`, `handleCalculateOrder()`
+- `src/main_server.go` - Enhanced `handleValidateUser()`, `handleCalculateOrder()`
 
 ### 4. **Potential Division by Zero** ✅ **FIXED**
 **Issue:** Analytics and price calculation functions could divide by zero
@@ -45,7 +45,7 @@
 - Return sensible defaults
 
 **Files Modified:**
-- `shared_models.go` - Fixed `getAverageProductPrice()`, `AnalyzeUserBehavior()`
+- `src/shared_models.go` - Fixed `getAverageProductPrice()`, `AnalyzeUserBehavior()`
 
 ### 5. **Missing Security Headers** ✅ **FIXED**
 **Issue:** Server responses lacked important security headers

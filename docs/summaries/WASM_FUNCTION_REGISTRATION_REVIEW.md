@@ -2,7 +2,7 @@
 
 ## Issue Analysis
 
-The `main_wasm.go` file had several inconsistencies in function registration:
+The `src/main_wasm.go` file had several inconsistencies in function registration:
 
 ### 🚨 **Problems Found:**
 

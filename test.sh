@@ -78,38 +78,38 @@ $ECHO_CMD "${YELLOW}════════════════════
 $ECHO_CMD "${YELLOW}📝 UNIT TESTS - BUSINESS LOGIC${NC}"
 $ECHO_CMD "${YELLOW}═══════════════════════════════════════${NC}"
 
-run_test "User Validation Logic" "go test -v -run TestValidateUser"
-run_test "Product Validation Logic" "go test -v -run TestValidateProduct"
-run_test "Order Calculation Logic" "go test -v -run TestCalculateOrderTotal"
-run_test "Tax Rate Calculation" "go test -v -run TestGetTaxRate"
-run_test "Shipping Calculation" "go test -v -run TestCalculateShipping"
-run_test "Recommendation Algorithm" "go test -v -run TestRecommendProducts"
-run_test "User Analytics" "go test -v -run TestAnalyzeUserBehavior"
-run_test "JSON Serialization" "go test -v -run TestJSONSerialization"
-run_test "Utility Functions" "go test -v -run TestUtilityFunctions"
-run_test "Edge Cases" "go test -v -run TestEdgeCases"
+run_test "User Validation Logic" "go test -C src -v -run TestValidateUser"
+run_test "Product Validation Logic" "go test -C src -v -run TestValidateProduct"
+run_test "Order Calculation Logic" "go test -C src -v -run TestCalculateOrderTotal"
+run_test "Tax Rate Calculation" "go test -C src -v -run TestGetTaxRate"
+run_test "Shipping Calculation" "go test -C src -v -run TestCalculateShipping"
+run_test "Recommendation Algorithm" "go test -C src -v -run TestRecommendProducts"
+run_test "User Analytics" "go test -C src -v -run TestAnalyzeUserBehavior"
+run_test "JSON Serialization" "go test -C src -v -run TestJSONSerialization"
+run_test "Utility Functions" "go test -C src -v -run TestUtilityFunctions"
+run_test "Edge Cases" "go test -C src -v -run TestEdgeCases"
 
 # 2. Integration Tests
 $ECHO_CMD "${YELLOW}═══════════════════════════════════════${NC}"
 $ECHO_CMD "${YELLOW}🔗 INTEGRATION TESTS - API ENDPOINTS${NC}"
 $ECHO_CMD "${YELLOW}═══════════════════════════════════════${NC}"
 
-run_test "Server API Endpoints" "go test -v -run TestServerAPIEndpoints"
-run_test "Benchmark Endpoints" "go test -v -run TestBenchmarkEndpoints"
-run_test "Error Handling" "go test -v -run TestErrorHandling"
-run_test "CORS Headers" "go test -v -run TestCORSHeaders"
-run_test "Demo Data Endpoints" "go test -v -run TestDemoDataEndpoints"
-run_test "Data Consistency" "go test -v -run TestDataConsistency"
+run_test "Server API Endpoints" "go test -C src -v -run TestServerAPIEndpoints"
+run_test "Benchmark Endpoints" "go test -C src -v -run TestBenchmarkEndpoints"
+run_test "Error Handling" "go test -C src -v -run TestErrorHandling"
+run_test "CORS Headers" "go test -C src -v -run TestCORSHeaders"
+run_test "Demo Data Endpoints" "go test -C src -v -run TestDemoDataEndpoints"
+run_test "Data Consistency" "go test -C src -v -run TestDataConsistency"
 
 # 3. Algorithm Tests
 $ECHO_CMD "${YELLOW}═══════════════════════════════════════${NC}"
 $ECHO_CMD "${YELLOW}🔬 ALGORITHM CORRECTNESS TESTS${NC}"
 $ECHO_CMD "${YELLOW}═══════════════════════════════════════${NC}"
 
-run_test "Matrix Multiplication Logic" "go test -v -run TestMatrixMultiplicationLogic"
-run_test "Mandelbrot Set Logic" "go test -v -run TestMandelbrotLogic"
-run_test "Hash Function Consistency" "go test -v -run TestHashingConsistency"
-run_test "Memory Allocation" "go test -v -run TestMemoryAllocation"
+run_test "Matrix Multiplication Logic" "go test -C src -v -run TestMatrixMultiplicationLogic"
+run_test "Mandelbrot Set Logic" "go test -C src -v -run TestMandelbrotLogic"
+run_test "Hash Function Consistency" "go test -C src -v -run TestHashingConsistency"
+run_test "Memory Allocation" "go test -C src -v -run TestMemoryAllocation"
 
 # 4. Performance Tests (if not in short mode)
 if [[ "$1" != "short" ]]; then
@@ -117,10 +117,10 @@ if [[ "$1" != "short" ]]; then
     $ECHO_CMD "${YELLOW}🚀 PERFORMANCE TESTS${NC}"
     $ECHO_CMD "${YELLOW}═══════════════════════════════════════${NC}"
     
-    run_test "Server Performance" "go test -v -run TestServerPerformance"
-    run_test "Stress Testing" "go test -v -run TestStressTest"
-    run_test "Performance Regression" "go test -v -run TestPerformanceRegression"
-    run_test "Concurrent Safety" "go test -v -run TestConcurrentSafety"
+    run_test "Server Performance" "go test -C src -v -run TestServerPerformance"
+    run_test "Stress Testing" "go test -C src -v -run TestStressTest"
+    run_test "Performance Regression" "go test -C src -v -run TestPerformanceRegression"
+    run_test "Concurrent Safety" "go test -C src -v -run TestConcurrentSafety"
 fi
 
 # 5. Business Logic Integration
@@ -128,16 +128,16 @@ $ECHO_CMD "${YELLOW}════════════════════
 $ECHO_CMD "${YELLOW}🎯 BUSINESS LOGIC INTEGRATION${NC}"
 $ECHO_CMD "${YELLOW}═══════════════════════════════════════${NC}"
 
-run_test "End-to-End Business Logic" "go test -v -run TestBusinessLogicIntegration"
+run_test "End-to-End Business Logic" "go test -C src -v -run TestBusinessLogicIntegration"
 
 # 6. Build Verification
 $ECHO_CMD "${YELLOW}═══════════════════════════════════════${NC}"
 $ECHO_CMD "${YELLOW}🔧 BUILD VERIFICATION${NC}"
 $ECHO_CMD "${YELLOW}═══════════════════════════════════════${NC}"
 
-run_test "WebAssembly Build" "GOOS=js GOARCH=wasm go build -o test_main.wasm main_wasm.go shared_models.go benchmarks_wasm.go benchmarks_types.go benchmarks_comprehensive.go benchmarks_optimized.go benchmarks_shared.go mandelbrot.go mandelbrot_concurrent.go"
-run_test "Server Build" "go build -o test_server main_server.go shared_models.go"
-run_test "Test Compilation" "go test -c -o test_binary"
+run_test "WebAssembly Build" "GOOS=js GOARCH=wasm go build -o test_main.wasm src/main_wasm.go src/shared_models.go src/benchmarks_wasm.go src/benchmarks_types.go src/benchmarks_comprehensive.go src/benchmarks_optimized.go src/benchmarks_shared.go src/mandelbrot.go src/mandelbrot_concurrent.go"
+run_test "Server Build" "go build -o test_server src/main_server.go src/shared_models.go"
+run_test "Test Compilation" "go test -C src -c -o test_binary"
 
 # Clean up build artifacts
 rm -f test_main.wasm test_server test_binary 2>/dev/null
@@ -148,11 +148,11 @@ if [[ "$1" == "bench" ]] || [[ "$1" == "full" ]]; then
     $ECHO_CMD "${YELLOW}⚡ PERFORMANCE BENCHMARKS${NC}"
     $ECHO_CMD "${YELLOW}═══════════════════════════════════════${NC}"
     
-    run_benchmark "Business Logic Benchmarks" "go test -bench=BenchmarkValidate -benchmem"
-    run_benchmark "Algorithm Benchmarks" "go test -bench=BenchmarkMatrix -benchmem -benchtime=3s"
-    run_benchmark "Mandelbrot Benchmarks" "go test -bench=BenchmarkMandelbrot -benchmem -benchtime=2s"
-    run_benchmark "Hash Benchmarks" "go test -bench=BenchmarkHashing -benchmem"
-    run_benchmark "Server Function Benchmarks" "go test -bench=BenchmarkServer -benchmem"
+    run_benchmark "Business Logic Benchmarks" "go test -C src -bench=BenchmarkValidate -benchmem"
+    run_benchmark "Algorithm Benchmarks" "go test -C src -bench=BenchmarkMatrix -benchmem -benchtime=3s"
+    run_benchmark "Mandelbrot Benchmarks" "go test -C src -bench=BenchmarkMandelbrot -benchmem -benchtime=2s"
+    run_benchmark "Hash Benchmarks" "go test -C src -bench=BenchmarkHashing -benchmem"
+    run_benchmark "Server Function Benchmarks" "go test -C src -bench=BenchmarkServer -benchmem"
 fi
 
 # 8. Code Quality Checks
@@ -162,9 +162,9 @@ $ECHO_CMD "${YELLOW}════════════════════
 
 # Check for gofmt
 if command -v gofmt >/dev/null 2>&1; then
-    if gofmt -l . | grep -q .; then
+    if gofmt -l src/ | grep -q .; then
         $ECHO_CMD "${RED}❌ Code formatting issues found:${NC}"
-        gofmt -l .
+        gofmt -l src/
         ((TESTS_FAILED++))
     else
         $ECHO_CMD "${GREEN}✅ Code formatting check passed${NC}"
@@ -176,7 +176,7 @@ fi
 
 # Check for go vet
 if command -v go >/dev/null 2>&1; then
-    if go vet ./...; then
+    if go vet ./src/...; then
         $ECHO_CMD "${GREEN}✅ Go vet check passed${NC}"
         ((TESTS_PASSED++))
     else
@@ -192,7 +192,7 @@ if [[ "$1" == "coverage" ]] || [[ "$1" == "full" ]]; then
     $ECHO_CMD "${YELLOW}═══════════════════════════════════════${NC}"
     
     $ECHO_CMD "${BLUE}Generating coverage report...${NC}"
-    go test -coverprofile=coverage.out -covermode=count
+    go test -C src -coverprofile=coverage.out -covermode=count
     
     if command -v go >/dev/null 2>&1; then
         $ECHO_CMD "${BLUE}Coverage by function:${NC}"

@@ -132,7 +132,7 @@ This fix ensures the WebAssembly benchmark application runs smoothly without Jav
 panic: runtime error: slice bounds out of range [::80000] with length 8
 goroutine 6 [running]:
 main.matrixMultiplyOptimizedWasm(..., {0x444480, 0x3, 0x3})
-  /Users/dhruva/src/dhruvasagar/go-wasm-demo/benchmarks_optimized.go:42 +0xa9
+  /Users/dhruva/src/dhruvasagar/go-wasm-demo/src/benchmarks_optimized.go:42 +0xa9
 ```
 
 **Root Cause**: Incorrect unsafe pointer casting when using `js.CopyBytesToGo`. The code was casting to `(*[8]byte)` but then trying to slice it to `totalElements*8` bytes (e.g., 80,000 bytes for a 100x100 matrix).

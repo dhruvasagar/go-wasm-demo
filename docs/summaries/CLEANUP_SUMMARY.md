@@ -15,7 +15,7 @@ This document summarizes the comprehensive cleanup and consolidation of the conc
 
 ### ✅ **New Consolidated Structure**
 
-#### **Single Optimized Implementation: `benchmarks_optimized.go`**
+#### **Single Optimized Implementation: `src/benchmarks_optimized.go`**
 - **matrixMultiplyOptimizedWasm()** - Hierarchical blocking with register tiling
 - **sha256HashOptimizedWasm()** - Multi-lane vectorized hash processing  
 - **mandelbrotOptimizedWasm()** - Vectorized Mandelbrot with early termination
@@ -58,9 +58,9 @@ This document summarizes the comprehensive cleanup and consolidation of the conc
 ### 📦 **Better Organization**
 ```
 OLD STRUCTURE:                    NEW STRUCTURE:
-├── benchmarks_concurrent.go      ├── benchmarks_optimized.go
+├── benchmarks_concurrent.go      ├── src/benchmarks_optimized.go
 ├── benchmarks_concurrent_*.go         └── Single source of truth
-├── benchmarks_concurrent_test.go ├── benchmarks_optimized_test.go
+├── benchmarks_concurrent_test.go ├── src/benchmarks_optimized_test.go
 └── Multiple duplicate functions       └── Comprehensive test coverage
 ```
 
@@ -131,7 +131,7 @@ rayTracingOptimizedWasm()       // Direct access to optimized version
 ## Future Maintenance
 
 ### 🔄 **Simplified Codebase**
-- **Single Source File**: `benchmarks_optimized.go` contains all implementations
+- **Single Source File**: `src/benchmarks_optimized.go` contains all implementations
 - **Clear Documentation**: Each function well-documented with optimization details
 - **Consistent Patterns**: Similar optimization strategies across algorithms
 
@@ -144,8 +144,8 @@ rayTracingOptimizedWasm()       // Direct access to optimized version
 
 ### ✅ **All Tests Pass**
 ```bash
-go test -v                          # All correctness tests pass
-go test -bench . -benchmem          # Performance benchmarks run
+go test -C src -v                          # All correctness tests pass
+go test -C src -bench . -benchmem          # Performance benchmarks run
 ./build.sh                          # Clean builds succeed
 ```
 
@@ -158,13 +158,13 @@ go test -bench . -benchmem          # Performance benchmarks run
 
 ```
 go-wasm-demo/
-├── benchmarks_optimized.go         # ← Single optimized implementation
-├── benchmarks_optimized_test.go    # ← Comprehensive test suite
-├── main_wasm.go                    # ← Updated function registration
+├── src/benchmarks_optimized.go         # ← Single optimized implementation
+├── src/benchmarks_optimized_test.go    # ← Comprehensive test suite
+├── src/main_wasm.go                    # ← Updated function registration
 ├── build.sh                       # ← Updated build script
-├── benchmarks_wasm.go              # Existing single-threaded WASM functions
-├── benchmarks_comprehensive.go     # Existing comprehensive benchmarks
-├── benchmarks.go                   # Server-side benchmark functions
+├── src/benchmarks_wasm.go              # Existing single-threaded WASM functions
+├── src/benchmarks_comprehensive.go     # Existing comprehensive benchmarks
+├── src/benchmarks_*.go                   # Server-side benchmark functions
 └── [other project files...]
 ```
 

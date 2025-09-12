@@ -100,8 +100,8 @@ js.CopyBytesToJS(
 
 ```
 go-wasm-demo/
-├── benchmarks_optimized.go         # Single optimized implementation
-├── benchmarks_optimized_test.go    # Comprehensive test suite  
+├── src/benchmarks_optimized.go         # Single optimized implementation
+├── src/benchmarks_optimized_test.go    # Comprehensive test suite  
 ├── test_boundary_optimized.html    # Browser testing interface
 ├── BOUNDARY_CALL_OPTIMIZATION.md  # Technical documentation
 ├── CLEANUP_SUMMARY.md              # Cleanup process documentation
@@ -112,10 +112,10 @@ go-wasm-demo/
 
 ### **Correctness Tests**
 ```bash
-go test -run TestMatrixMultiplyConcurrentCorrectness -v  # ✅ PASS
-go test -run TestHashConcurrentConsistency -v           # ✅ PASS  
-go test -run TestMandelbrotConcurrentCorrectness -v     # ✅ PASS
-go test -run TestFastSqrt -v                           # ✅ PASS
+go test -C src -run TestMatrixMultiplyConcurrentCorrectness -v  # ✅ PASS
+go test -C src -run TestHashConcurrentConsistency -v           # ✅ PASS  
+go test -C src -run TestMandelbrotConcurrentCorrectness -v     # ✅ PASS
+go test -C src -run TestFastSqrt -v                           # ✅ PASS
 ```
 
 ### **Performance Benchmarks**

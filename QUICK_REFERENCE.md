@@ -11,7 +11,7 @@
 ### Testing
 ```bash
 ./test.sh          # Run all tests
-go test -bench .   # Run benchmarks
+go test -C src -bench .   # Run benchmarks
 ```
 
 ## Key Files
@@ -22,10 +22,10 @@ go test -bench .   # Run benchmarks
 - **http://localhost:8181/performance_benchmarks.html** - Performance tests
 
 ### 📝 Core Code Files
-- `shared_models.go` - Business logic used by both WASM and server
-- `benchmarks_optimized.go` - High-performance WASM implementations
-- `main_wasm.go` - WebAssembly entry point
-- `main_server.go` - Server implementation
+- `src/shared_models.go` - Business logic used by both WASM and server
+- `src/benchmarks_optimized.go` - High-performance WASM implementations
+- `src/main_wasm.go` - WebAssembly entry point
+- `src/main_server.go` - Server implementation
 
 ### 📚 Documentation
 - `README.md` - Project overview

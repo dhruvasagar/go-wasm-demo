@@ -10,20 +10,20 @@
 ### 📁 **Current File Structure**
 
 #### **Core Business Logic**
-- `shared_models.go` - Business logic for users, products, orders
-- `benchmarks.go` - Base benchmark definitions
+- `src/shared_models.go` - Business logic for users, products, orders
+- `src/benchmarks_*.go` - Base benchmark definitions
 
 #### **WebAssembly Implementations**
-- `benchmarks_wasm.go` - Optimized single-threaded WASM functions
-- `benchmarks_comprehensive.go` - Single-threaded benchmark implementations
+- `src/benchmarks_wasm.go` - Optimized single-threaded WASM functions
+- `src/benchmarks_comprehensive.go` - Single-threaded benchmark implementations
 - `benchmarks_concurrent.go` - **NEW: Consolidated concurrent implementations**
-- `benchmarks_types.go` - Common type definitions
-- `mandelbrot.go` - Basic Mandelbrot implementation
-- `mandelbrot_concurrent.go` - Specialized Mandelbrot variants
+- `src/benchmarks_types.go` - Common type definitions
+- `src/mandelbrot*.go` - Basic Mandelbrot implementation
+- `src/mandelbrot_concurrent.go` - Specialized Mandelbrot variants
 
 #### **Entry Points**
-- `main_wasm.go` - WebAssembly entry point and function registration
-- `main_server.go` - Server entry point
+- `src/main_wasm.go` - WebAssembly entry point and function registration
+- `src/main_server.go` - Server entry point
 
 ### 🚀 **Concurrent Functions Available**
 
@@ -32,7 +32,7 @@ From `benchmarks_concurrent.go`:
 2. **`sha256HashConcurrentWasm`** - Parallel hash computation with work distribution
 3. **`rayTracingConcurrentWasm`** - Tile-based parallel ray tracing
 
-From `mandelbrot_concurrent.go`:
+From `src/mandelbrot_concurrent.go`:
 1. **`mandelbrotConcurrentWasm`** - Standard concurrent Mandelbrot
 2. **`mandelbrotWorkStealingWasm`** - Work-stealing variant for better load balancing
 
@@ -66,15 +66,15 @@ From `mandelbrot_concurrent.go`:
 Updated build script includes:
 ```bash
 GOOS=js GOARCH=wasm go build -o main.wasm \
-  main_wasm.go \
-  shared_models.go \
-  benchmarks.go \
-  benchmarks_wasm.go \
-  benchmarks_types.go \
-  benchmarks_comprehensive.go \
+  src/main_wasm.go \
+  src/shared_models.go \
+  src/benchmarks_*.go \
+  src/benchmarks_wasm.go \
+  src/benchmarks_types.go \
+  src/benchmarks_comprehensive.go \
   benchmarks_concurrent.go \  # Consolidated file
-  mandelbrot.go \
-  mandelbrot_concurrent.go
+  src/mandelbrot*.go \
+  src/mandelbrot_concurrent.go
 ```
 
 ### 🌐 **Testing**
@@ -89,6 +89,6 @@ All concurrent functions are available at:
 - Removed `benchmarks_concurrent_enhanced.go` to eliminate duplication
 - Kept specialized Mandelbrot variants in their own file for clarity
 - All concurrent implementations follow consistent patterns
-- Type definitions centralized in `benchmarks_types.go`
+- Type definitions centralized in `src/benchmarks_types.go`
 
 The consolidation makes the codebase cleaner and easier to maintain while preserving all the performance optimizations.

@@ -35,7 +35,7 @@ $ECHO_CMD "🚀 Building WebAssembly in Go: Bridging Web and Backend"
 $ECHO_CMD "======================================================="
 
 $ECHO_CMD "${BLUE}📦 Building WebAssembly module...${NC}"
-GOOS=js GOARCH=wasm go build -o main.wasm main_wasm.go shared_models.go benchmarks_wasm.go benchmarks_types.go benchmarks_comprehensive.go benchmarks_optimized.go benchmarks_shared.go mandelbrot.go mandelbrot_concurrent.go
+GOOS=js GOARCH=wasm go build -o main.wasm src/main_wasm.go src/shared_models.go src/benchmarks_wasm.go src/benchmarks_types.go src/benchmarks_comprehensive.go src/benchmarks_optimized.go src/benchmarks_shared.go src/mandelbrot.go src/mandelbrot_concurrent.go
 
 if [ $? -eq 0 ]; then
     $ECHO_CMD "${GREEN}✅ WebAssembly module built successfully: main.wasm${NC}"
@@ -45,7 +45,7 @@ else
 fi
 
 $ECHO_CMD "${BLUE}🖥️  Building server binary...${NC}"
-go build -o server main_server.go shared_models.go
+go build -o server src/main_server.go src/shared_models.go
 
 if [ $? -eq 0 ]; then
     $ECHO_CMD "${GREEN}✅ Server binary built successfully: server${NC}"
@@ -67,12 +67,12 @@ $ECHO_CMD "   ${CYAN}http://localhost:8181/server.html${NC} - Server API demo"
 $ECHO_CMD ""
 $ECHO_CMD "${YELLOW}🔧 Development Commands:${NC}"
 $ECHO_CMD "• Rebuild WebAssembly:"
-$ECHO_CMD "  ${CYAN}GOOS=js GOARCH=wasm go build -o main.wasm main_wasm.go shared_models.go benchmarks_wasm.go benchmarks_types.go benchmarks_comprehensive.go benchmarks_optimized.go benchmarks_shared.go mandelbrot.go mandelbrot_concurrent.go${NC}"
+$ECHO_CMD "  ${CYAN}GOOS=js GOARCH=wasm go build -o main.wasm src/main_wasm.go src/shared_models.go src/benchmarks_wasm.go src/benchmarks_types.go src/benchmarks_comprehensive.go src/benchmarks_optimized.go src/benchmarks_shared.go src/mandelbrot.go src/mandelbrot_concurrent.go${NC}"
 $ECHO_CMD ""
 $ECHO_CMD "• Rebuild Server:"
-$ECHO_CMD "  ${CYAN}go build -o server main_server.go shared_models.go ${NC}"
+$ECHO_CMD "  ${CYAN}go build -o server src/main_server.go src/shared_models.go ${NC}"
 $ECHO_CMD ""
 $ECHO_CMD "• Run directly:"
-$ECHO_CMD "  ${CYAN}go run main_server.go shared_models.go ${NC}"
+$ECHO_CMD "  ${CYAN}go run src/main_server.go src/shared_models.go ${NC}"
 $ECHO_CMD ""
 $ECHO_CMD "${GREEN}🌟 Enjoy exploring the power of shared Go business logic!${NC}"

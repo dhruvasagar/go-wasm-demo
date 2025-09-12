@@ -33,17 +33,18 @@ The project centers around a simple but powerful idea: **the exact same Go funct
 ### **File Structure**
 ```
 go-prime-wasm/
-├── shared_models.go       # 💎 Core business logic (shared)
-├── main_wasm.go          # 🌐 WebAssembly entry point
-├── main_server.go        # 🖥️  HTTP server implementation
-├── benchmarks.go         # ⚡ Performance benchmark algorithms
-├── mandelbrot.go         # 🎨 Mandelbrot set calculations
+├── src/
+│   ├── shared_models.go       # 💎 Core business logic (shared)
+│   ├── main_wasm.go          # 🌐 WebAssembly entry point
+│   ├── main_server.go        # 🖥️  HTTP server implementation
+│   ├── benchmarks_*.go       # ⚡ Performance benchmark algorithms
+│   └── mandelbrot*.go        # 🎨 Mandelbrot set calculations
 ├── index.html            # 🎨 WebAssembly client demo
 ├── server.html           # 📊 Server API dashboard
 └── wasm_exec.js          # 🔧 Go WebAssembly runtime
 ```
 
-### **Shared Business Logic (`shared_models.go`)**
+### **Shared Business Logic (`src/shared_models.go`)**
 This file contains the heart of the demonstration - business logic that runs identically in both environments:
 
 - **Data Models**: User, Product, Order structs with JSON serialization
@@ -52,13 +53,13 @@ This file contains the heart of the demonstration - business logic that runs ide
 - **Analytics**: User behavior analysis and recommendation engines
 - **Utility Functions**: JSON parsing, currency formatting, timestamp generation
 
-### **WebAssembly Implementation (`main_wasm.go`)**
+### **WebAssembly Implementation (`src/main_wasm.go`)**
 - Exposes Go functions to JavaScript via `syscall/js`
 - Wraps shared business logic for browser consumption
 - Handles JSON serialization between Go and JavaScript
 - Maintains identical function signatures as server implementation
 
-### **Server Implementation (`main_server.go`)**
+### **Server Implementation (`src/src/main_server.go`)**
 - HTTP REST API using Go's native `net/http`
 - Uses identical business logic functions as WebAssembly
 - CORS-enabled for client-side testing
@@ -102,12 +103,12 @@ This file contains the heart of the demonstration - business logic that runs ide
 
 ### **1. Build WebAssembly Module**
 ```bash
-GOOS=js GOARCH=wasm go build -o main.wasm main_wasm.go shared_models.go benchmarks.go mandelbrot.go
+GOOS=js GOARCH=wasm go build -o main.wasm src/main_wasm.go src/shared_models.go src/benchmarks_*.go src/mandelbrot*.go
 ```
 
 ### **2. Run Server**
 ```bash
-go run main_server.go shared_models.go benchmarks.go
+go run src/src/main_server.go src/shared_models.go
 ```
 
 ### **3. View Demos**

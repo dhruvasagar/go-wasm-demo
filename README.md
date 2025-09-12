@@ -27,14 +27,20 @@ This project showcases how Go and WebAssembly can bridge the gap between fronten
 
 ```
 go-wasm-demo/
-├── main_wasm.go         # 🌐 WebAssembly entry point  
-├── main_server.go       # 🖥️  Backend server entry point
-├── shared_models.go      # 💎 Shared business logic & models
-├── benchmarks*.go       # 📊 Benchmark implementations
+├── src/                 # 📁 Go source code directory
+│   ├── main_wasm.go         # 🌐 WebAssembly entry point  
+│   ├── main_server.go       # 🖥️  Backend server entry point
+│   ├── shared_models.go     # 💎 Shared business logic & models
+│   ├── benchmarks*.go       # 📊 Benchmark implementations
+│   └── *_test.go           # 🧪 Test files
+├── assets/             # 📦 Web assets
+│   ├── css/            # 🎨 Stylesheets
+│   └── js/             # ⚡ JavaScript files
 ├── index.html          # 🎨 Interactive web demo
 ├── server.html         # 📊 Server dashboard
 ├── performance_benchmarks.html # 🚀 Performance comparison
 ├── build.sh            # 🔨 Build script
+├── test.sh             # 🧪 Comprehensive test runner
 ├── docs/               # 📚 Documentation
 │   ├── optimizations/  # Performance optimization guides
 │   ├── presentations/  # Project presentations
@@ -85,7 +91,7 @@ This project includes a full testing suite to ensure reliability and demonstrate
 ./test.sh coverage
 
 # Standard Go testing
-go test -v ./...
+go test -C src -v ./...
 ```
 
 ### **Test Categories**

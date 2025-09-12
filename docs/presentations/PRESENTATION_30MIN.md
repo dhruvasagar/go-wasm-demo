@@ -88,7 +88,7 @@ func validateEmail(email string) bool {
 
 **Alex:** "The frontend and backend are validating differently... AGAIN!"
 
-> **Presenter Notes:** This is based on our actual demo! Show `shared_models.go` line 42-75 - the REAL validation function with complex regex. This pain point resonates with everyone. Ask: "How many have had validation drift between frontend and backend?" (Wait for reactions - this gets the audience engaged immediately!)
+> **Presenter Notes:** This is based on our actual demo! Show `src/shared_models.go` line 42-75 - the REAL validation function with complex regex. This pain point resonates with everyone. Ask: "How many have had validation drift between frontend and backend?" (Wait for reactions - this gets the audience engaged immediately!)
 
 ---
 
@@ -178,9 +178,10 @@ return copyToJS(result)           // One return
 
 ```bash
 go-wasm-demo/
-├── shared_models.go    # Single source of truth (400+ lines!)
-├── main_wasm.go        # Browser version
-├── main_server.go      # Server version  
+├── src/
+│   ├── shared_models.go    # Single source of truth (400+ lines!)
+│   ├── main_wasm.go        # Browser version
+│   └── main_server.go      # Server version  
 ├── index.html          # Interactive demo
 └── build.sh            # Magic build script
 ```
@@ -211,7 +212,7 @@ WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject)
 const result = window.validateUserWasm(JSON.stringify(userData));
 ```
 
-> **Presenter Notes:** Show the actual build process! Run `./build.sh` live. Point to our `shared_models.go` with 400+ lines including complex business logic: user validation, product validation, order calculations with tax rates for 10 countries, and ML-style recommendation algorithms. This isn't toy code!
+> **Presenter Notes:** Show the actual build process! Run `./build.sh` live. Point to our `src/shared_models.go` with 400+ lines including complex business logic: user validation, product validation, order calculations with tax rates for 10 countries, and ML-style recommendation algorithms. This isn't toy code!
 
 ---
 
