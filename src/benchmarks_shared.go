@@ -3,6 +3,7 @@
 package main
 
 import (
+	"math"
 	"syscall/js"
 	"unsafe"
 )
@@ -34,33 +35,8 @@ func maxFloat(a, b float64) float64 {
 	return b
 }
 
-// Optimized fast square root using Newton-Raphson method
-func fastSqrt(x float64) float64 {
-	if x <= 0 {
-		return 0
-	}
-	if x == 1 {
-		return 1
-	}
-
-	// Better initial guess
-	var guess float64
-	if x >= 1 {
-		guess = x * 0.5
-	} else {
-		guess = (x + 1) * 0.5
-	}
-
-	// 4 iterations for optimal accuracy/performance balance
-	for i := 0; i < 4; i++ {
-		if guess == 0 {
-			break
-		}
-		guess = 0.5 * (guess + x/guess)
-	}
-
-	return guess
-}
+// NOTE: fastSqrt function removed - replaced with math.Sqrt() for better performance
+// The custom Newton-Raphson implementation was slower than the standard library
 
 // ============================================================================
 // SHARED RAY TRACING FUNCTIONS
@@ -86,20 +62,10 @@ func computeRayColor(nx, ny float64, samples int) (float64, float64, float64) {
 	var colorR, colorG, colorB float64
 
 	for s := 0; s < samples; s++ {
-		// FULLY INLINED: Ray direction normalization
+		// PERFORMANCE FIX: Use math.Sqrt instead of custom Newton-Raphson
+		// Ray direction normalization
 		rayLenSq := nx*nx + ny*ny + 1.0
-
-		// Inlined fast square root
-		var rayLen float64
-		if rayLenSq <= 0 {
-			rayLen = 0
-		} else if rayLenSq == 1 {
-			rayLen = 1
-		} else {
-			guess := rayLenSq * 0.5
-			guess = 0.5 * (guess + rayLenSq/guess)
-			rayLen = 0.5 * (guess + rayLenSq/guess)
-		}
+		rayLen := math.Sqrt(rayLenSq)
 
 		invRayLen := 1.0 / rayLen
 		dirX := nx * invRayLen
@@ -123,17 +89,8 @@ func computeRayColor(nx, ny float64, samples int) (float64, float64, float64) {
 			colorG += BackgroundG
 			colorB += BackgroundB
 		} else {
-			// Hit the sphere - inlined square root
-			var sqrtDisc float64
-			if discriminant <= 0 {
-				sqrtDisc = 0
-			} else if discriminant == 1 {
-				sqrtDisc = 1
-			} else {
-				guess := discriminant * 0.5
-				guess = 0.5 * (guess + discriminant/guess)
-				sqrtDisc = 0.5 * (guess + discriminant/guess)
-			}
+			// PERFORMANCE FIX: Use math.Sqrt instead of custom Newton-Raphson
+			sqrtDisc := math.Sqrt(discriminant)
 
 			t := (-rayB - sqrtDisc) / (2.0 * rayA)
 			if t < 0 {

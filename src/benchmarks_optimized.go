@@ -360,24 +360,5 @@ func rayTracingOptimizedWasm(this js.Value, args []js.Value) interface{} {
 // UTILITY FUNCTIONS - PURE GO (No Boundary Calls)
 // ============================================================================
 
-// Legacy ray tracing function (kept for compatibility, uses shared implementation)
-func traceRayOptimized(ox, oy, oz, dx, dy, dz float64) [3]float64 {
-	// Convert ray parameters to normalized screen coordinates equivalent
-	// This is a simplified adapter - in practice, you'd want proper coordinate conversion
-	nx := ox // Simplified mapping
-	ny := oy
-
-	colorR, colorG, colorB := computeRayColor(nx, ny, 1) // Single sample
-
-	return [3]float64{colorR, colorG, colorB}
-}
-
-func normalizeOptimized(x, y, z float64) [3]float64 {
-	lenSq := x*x + y*y + z*z
-	if lenSq == 0 {
-		return [3]float64{0, 0, 0}
-	}
-
-	invLen := 1.0 / fastSqrt(lenSq)
-	return [3]float64{x * invLen, y * invLen, z * invLen}
-}
+// NOTE: Legacy helper functions removed - were unused dead code
+// Ray tracing functionality is handled by the main shared implementations

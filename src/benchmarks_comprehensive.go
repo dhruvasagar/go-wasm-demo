@@ -142,7 +142,7 @@ func rayTracingWasmSingle(this js.Value, args []js.Value) interface{} {
 	return createFloat64TypedArray(result)
 }
 
-// Note: fastSqrt function moved to benchmarks_shared.go to avoid duplication
+// Note: fastSqrt function removed - replaced with math.Sqrt() for better performance
 
 // ============================================================================
 // ENHANCED CONCURRENT IMPLEMENTATIONS

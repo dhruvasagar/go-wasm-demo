@@ -214,18 +214,43 @@ function displayThreeWayComparison(elementId, jsTime, singleTime, concurrentTime
     const singlePercent = (singleTime / maxTime) * 100;
     const concurrentPercent = (concurrentTime / maxTime) * 100;
 
+    // Calculate speedup ratios
+    const singleSpeedup = (jsTime / singleTime).toFixed(2);
+    const concurrentSpeedup = (jsTime / concurrentTime).toFixed(2);
+    const concurrentVsSingle = (singleTime / concurrentTime).toFixed(2);
+
     document.getElementById(elementId).innerHTML = `
-        <div class="performance-bar" style="margin: 5px 0;">
-            <div class="performance-fill" style="width: ${jsPercent}%; background: #f39c12;"></div>
-            <div class="performance-label" style="color: #333;">JavaScript</div>
+        <h5 class="performance-comparison-title">📊 Performance Comparison</h5>
+        
+        <div class="performance-bar">
+            <div class="performance-fill js" style="width: ${jsPercent}%;">
+                <span class="performance-label">🟡 JavaScript</span>
+                <span class="performance-timing">${jsTime.toFixed(1)}ms</span>
+            </div>
         </div>
-        <div class="performance-bar" style="margin: 5px 0;">
-            <div class="performance-fill" style="width: ${singlePercent}%; background: #3498db;"></div>
-            <div class="performance-label" style="color: #333;">Single WASM</div>
+        
+        <div class="performance-bar">
+            <div class="performance-fill wasm" style="width: ${singlePercent}%;">
+                <span class="performance-label">🔵 Single WASM</span>
+                <span class="performance-timing">${singleTime.toFixed(1)}ms (${singleSpeedup}x)</span>
+            </div>
         </div>
-        <div class="performance-bar" style="margin: 5px 0;">
-            <div class="performance-fill" style="width: ${concurrentPercent}%; background: #27ae60;"></div>
-            <div class="performance-label" style="color: #333;">Concurrent WASM</div>
+        
+        <div class="performance-bar">
+            <div class="performance-fill concurrent" style="width: ${concurrentPercent}%;">
+                <span class="performance-label">🟢 Concurrent WASM</span>
+                <span class="performance-timing">${concurrentTime.toFixed(1)}ms (${concurrentSpeedup}x)</span>
+            </div>
+        </div>
+        
+        <div style="margin-top: 12px; font-size: 12px; color: #6c757d; text-align: center;">
+            <strong>Winner:</strong> 
+            ${concurrentTime <= singleTime && concurrentTime <= jsTime ? 
+                `🥇 Concurrent WASM (${concurrentSpeedup}x faster than JS, ${concurrentVsSingle}x faster than Single)` :
+                singleTime <= jsTime ? 
+                `🥇 Single WASM (${singleSpeedup}x faster than JS)` : 
+                '🥇 JavaScript (best for this workload size)'
+            }
         </div>
     `;
 }

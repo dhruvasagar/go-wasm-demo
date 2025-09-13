@@ -11,21 +11,18 @@
 - Code duplication nightmare across frontend/backend
 - Real-world validation drift that breaks production
 
-### 🌟 **The WebAssembly Solution** (8 min)  
-- Live demo: 400+ lines of identical Go running everywhere
+### 🌟 **The WebAssembly Solution** (8 min)
+- Live demo: Identical Go business logic running everywhere
 - What WebAssembly actually is (in plain English)
 
-### 📈 **Performance Reality** (7 min)
-- Honest benchmarks: when WASM wins vs when JavaScript is faster
-- Live performance comparisons
-
-### 🛠️ **Implementation & Success** (8 min)
+### 📈 **Performance & Implementation** (12 min)
+- Honest benchmarks and optimization strategies
 - Project structure and build process
 - Real-world case studies from our demo
 
-### 🚀 **Your Action Plan** (2 min)
+### 🚀 **Your Action Plan** (5 min)
 - When to use WebAssembly vs JavaScript
-- Ready-to-clone repository for immediate use
+- Ready-to-clone repository and next steps
 
 ---
 
@@ -78,7 +75,7 @@ function validateEmail(email) {
 }
 ```
 
-```go  
+```go
 // backend.go - Monday afternoon (after bug report)
 func validateEmail(email string) bool {
   // Wait, we need spaces AND length checks!
@@ -124,28 +121,29 @@ WebAssembly: Go/Rust/C++ ──► WASM ──► Browser ⚡
 
 ---
 
-## Act III: The Performance Truth 📈
+## Act III: Performance & Implementation 📈🛠️
 
 ### The Honest Benchmark Conversation
 
 **Alex:** "But won't Go in the browser be slow?"
 **WebAssembly:** "It's... complicated!"
 
-### Performance Reality Check
+### The Decision Framework
 
-**WebAssembly WINS:**
-- ✅ **Heavy Computation**: Mandelbrot (800x600) → 2-4x faster
-- ✅ **Complex Business Logic**: Consistent results across platforms
-- ✅ **Predictable Performance**: No JIT warm-up delays
+**Choose WebAssembly When:**
+- 🎯 **Complex Business Logic** that needs consistency across platforms
+- 🌐 **Offline Functionality** is required (all logic works without server!)
+- 🧮 **Heavy Computation** (Mandelbrot 800x600 → 2-4x faster)
+- 📱 **Code Reuse** matters more than micro-optimizations
 
-**JavaScript WINS:**  
-- 🚀 **Small Operations**: Matrix (300x300) → Often faster due to V8 optimization
-- 🚀 **DOM Manipulation**: JavaScript's home turf
-- 🚀 **Quick Tasks**: JIT optimization shines
+**Choose JavaScript When:**
+- 🚀 **DOM Manipulation** is the primary need
+- 🔗 **Small Operations** where V8 JIT optimization shines
+- 🎨 **UI/Animation** focused development
 
-**Key Insight:** It's not about raw speed—it's about **consistency and reliability**!
+**Key Insight:** It's not about raw speed—it's about **consistency, reuse, and offline capability**!
 
-> **Presenter Notes:** **LIVE BENCHMARK TIME!** Run the matrix multiplication: 300x300 shows JS often wins, but 800x600 Mandelbrot shows WASM dominating. Point out: "For our order calculator handling 10 country tax rates and shipping logic, consistency matters more than speed." This proves your honesty about performance trade-offs.
+> **Presenter Notes:** **LIVE BENCHMARK TIME!** Run the matrix multiplication: 300x300 shows JS often wins, but 800x600 Mandelbrot shows WASM dominating. Point out: "For our order calculator handling 10 country tax rates and shipping logic, consistency matters more than speed." This proves your honest approach to performance trade-offs while giving them the decision framework.
 
 ---
 
@@ -159,7 +157,7 @@ for i := 0; i < size; i++ {
 
 // ✅ GOOD: Batch operations
 goArray := copyFromJS(jsArray)    // One transfer
-result := computeInGo(goArray)    // Fast computation  
+result := computeInGo(goArray)    // Fast computation
 return copyToJS(result)           // One return
 ```
 
@@ -170,20 +168,18 @@ return copyToJS(result)           // One return
 
 **Takeaway:** WebAssembly performance is about minimizing boundary crossings!
 
----
-
-## Act IV: Building the Bridge 🛠️
+### Building the Bridge
 
 ### Project Structure That Works
 
 ```bash
 go-wasm-demo/
 ├── src/
-│   ├── shared_models.go    # Single source of truth (400+ lines!)
+│   ├── shared_models.go    # Single source of truth
 │   ├── main_wasm.go        # Browser version
-│   └── main_server.go      # Server version  
-├── index.html          # Interactive demo
-└── build.sh            # Magic build script
+│   └── main_server.go      # Server version
+├── index.html              # Interactive demo
+└── build.sh                # Build script
 ```
 
 ### One Function, Two Environments
@@ -191,12 +187,9 @@ go-wasm-demo/
 ```go
 // shared_models.go - The source of truth
 func ValidateUser(user User) ValidationResult {
-    // Same logic for browser AND server
-    emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-    if !emailRegex.MatchString(user.Email) {
-        return ValidationResult{Valid: false, Errors: []string{"Invalid email"}}
-    }
-    // 9 total validation rules - identical everywhere!
+    // Same complex logic for browser AND server
+    // 9 validation rules including email regex, age limits, name checks
+    // No more frontend/backend drift!
 }
 ```
 
@@ -214,9 +207,7 @@ const result = window.validateUserWasm(JSON.stringify(userData));
 
 > **Presenter Notes:** Show the actual build process! Run `./build.sh` live. Point to our `src/shared_models.go` with 400+ lines including complex business logic: user validation, product validation, order calculations with tax rates for 10 countries, and ML-style recommendation algorithms. This isn't toy code!
 
----
-
-## Act V: Real-World Victory 🏆
+## Act IV: Real-World Victory 🏆
 
 ### Case Studies from Our Demo
 
@@ -255,35 +246,21 @@ if (!navigator.onLine) {
 
 ## The Grand Finale 🎆
 
-### When to Choose WebAssembly
-
-**Perfect for WebAssembly:**
-- 🎯 **Consistent Business Logic** (our 400+ line demo!)
-- 🌐 **Offline Capability** (full functionality without server)
-- 🧮 **Heavy Computation** (see our Mandelbrot benchmark)
-- 📱 **Cross-Platform** (browser, server, edge, mobile)
-
-**Stick with JavaScript for:**
-- 🚀 **DOM Manipulation** and UI logic
-- 📡 **API calls** and simple data fetching
-- 🎨 **Animations** and visual effects
-- 🔗 **Small operations** (where V8 JIT wins)
-
 ### Your Mission
 
 ```bash
 # Start your WebAssembly journey NOW!
 git clone https://github.com/dhruvasagar/go-wasm-demo
-cd go-wasm-demo  
-./build.sh
-open index.html
+cd go-wasm-demo
+./build.sh && ./server
+open http://localhost:8181
 # Magic happens! ✨
 ```
 
-**Three Steps to Success:**
-1. **Clone our repo** - working examples ready to run
-2. **Identify shared logic** - what do you duplicate between frontend/backend?
-3. **Build your bridge** - one codebase, multiple platforms
+**Three Steps to WebAssembly Success:**
+1. **Clone & Explore** - Start with our working examples
+2. **Identify Duplication** - What logic exists in both frontend and backend?
+3. **Build Your Bridge** - One codebase, unlimited platforms
 
 ---
 
@@ -321,13 +298,11 @@ fmt.Println("Now go forth and build amazing things! 🚀")
 
 ### Quick Q&A (5 minutes)
 
-**"Isn't WASM bigger than JS?"** → Yes, but it replaces thousands of lines of duplicated logic + enables offline functionality.
+**"Isn't WASM bigger than JS?"** → Yes, but eliminates code duplication + enables offline functionality.
 
-**"How do you debug WASM?"** → Debug your Go business logic with excellent Go tooling, then deploy to WASM.
+**"How do you debug WASM?"** → Debug your Go logic with Go tooling, then deploy to WASM.
 
-**"Browser compatibility?"** → 95%+ coverage in modern browsers. Fallback to JS for older ones.
-
-**"When does performance matter?"** → WASM isn't always faster, but it's always consistent. For business logic, consistency > raw speed.
+**"Browser compatibility?"** → 95%+ modern browser coverage. Progressive enhancement for older ones.
 
 ---
 

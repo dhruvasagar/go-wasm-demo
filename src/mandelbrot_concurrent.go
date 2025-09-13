@@ -104,71 +104,8 @@ func mandelbrotWorker(rowChan <-chan int, wg *sync.WaitGroup, result []int32, wi
 	}
 }
 
-// Advanced concurrent version with work stealing for better load balancing
-func mandelbrotWasmWorkStealing(this js.Value, args []js.Value) interface{} {
-	if len(args) < 6 {
-		return js.ValueOf("Missing arguments")
-	}
-
-	width := args[0].Int()
-	height := args[1].Int()
-	xmin := args[2].Float()
-	xmax := args[3].Float()
-	ymin := args[4].Float()
-	ymax := args[5].Float()
-	maxIter := 100
-	if len(args) > 6 {
-		maxIter = args[6].Int()
-	}
-
-	// Pre-calculate constants
-	dx := (xmax - xmin) / float64(width)
-	dy := (ymax - ymin) / float64(height)
-	pixels := width * height
-
-	result := make([]int32, pixels)
-
-	// Work stealing approach: divide image into chunks
-	numWorkers := runtime.GOMAXPROCS(0)
-	if numWorkers < 1 {
-		numWorkers = 4
-	}
-
-	// Create smaller chunks for better load balancing
-	chunkSize := height / (numWorkers * 4) // More chunks than workers
-	if chunkSize < 1 {
-		chunkSize = 1
-	}
-
-	workChan := make(chan mandelbrotChunk, numWorkers*4)
-	var wg sync.WaitGroup
-
-	// Create work chunks
-	for y := 0; y < height; y += chunkSize {
-		endY := y + chunkSize
-		if endY > height {
-			endY = height
-		}
-		workChan <- mandelbrotChunk{startY: y, endY: endY}
-	}
-	close(workChan)
-
-	// Start workers
-	for i := 0; i < numWorkers; i++ {
-		wg.Add(1)
-		go mandelbrotChunkWorker(workChan, &wg, result, width, dx, dy, xmin, ymin, maxIter)
-	}
-
-	wg.Wait()
-
-	// Return result
-	jsArray := js.Global().Get("Int32Array").New(pixels)
-	for i := 0; i < pixels; i++ {
-		jsArray.SetIndex(i, js.ValueOf(result[i]))
-	}
-
-	return jsArray
-}
+// NOTE: mandelbrotWasmWorkStealing removed - was unused dead code
+// The main mandelbrotWasmConcurrent implementation already provides excellent performance
 
 // Chunk worker for work-stealing approach
 func mandelbrotChunkWorker(workChan <-chan mandelbrotChunk, wg *sync.WaitGroup, result []int32, width int, dx, dy, xmin, ymin float64, maxIter int) {

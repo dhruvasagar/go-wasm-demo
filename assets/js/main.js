@@ -14,6 +14,14 @@ const demoProducts = [
     {"id": 5, "name": "Running Shoes", "price": 129.99, "category": "sports", "in_stock": true, "rating": 4.6, "description": "Lightweight running shoes"}
 ];
 
+// Performance tracking
+let performanceData = {
+    userValidation: { wasm: null, server: null },
+    productValidation: { wasm: null, server: null },
+    orderCalculation: { wasm: null, server: null },
+    recommendations: { wasm: null, server: null }
+};
+
 // User validation functions
 function validateUserWasmButton() {
     if (!window.isWasmReady()) {
@@ -31,9 +39,12 @@ function validateUserWasmButton() {
     };
 
     try {
+	const start = performance.now();
 	const result = window.validateUserWasm(JSON.stringify(user));
+	const elapsed = performance.now() - start;
 	const parsedResult = (typeof result === 'string') ? JSON.parse(result) : result;
-	displayResult('userResults', parsedResult, '🌐 WebAssembly Client-Side Validation');
+	performanceData.userValidation.wasm = elapsed;
+	displayResult('userResults', parsedResult, '🌐 WebAssembly Client-Side Validation', elapsed, 'userValidation');
     } catch (error) {
 	displayError('userResults', error);
     }
@@ -48,13 +59,20 @@ function validateUserServer() {
 	premium: document.getElementById('userPremium').checked
     };
 
+    const start = performance.now();
     fetch('/api/validate-user', {
 	method: 'POST',
 	headers: { 'Content-Type': 'application/json' },
 	body: JSON.stringify(user)
     })
-    .then(response => response.json())
-    .then(result => displayResult('userResults', result, '🖥️ Server-Side API Validation'))
+    .then(response => {
+	const elapsed = performance.now() - start;
+	return response.json().then(result => ({ result, elapsed }));
+    })
+    .then(({ result, elapsed }) => {
+	performanceData.userValidation.server = elapsed;
+	displayResult('userResults', result, '🖥️ Server-Side API Validation', elapsed, 'userValidation');
+    })
     .catch(error => displayError('userResults', error));
 }
 
@@ -75,9 +93,12 @@ function validateProductWasmButton() {
     };
 
     try {
+	const start = performance.now();
 	const result = window.validateProductWasm(JSON.stringify(product));
+	const elapsed = performance.now() - start;
 	const parsedResult = (typeof result === 'string') ? JSON.parse(result) : result;
-	displayResult('productResults', parsedResult, '🌐 WebAssembly Client-Side Validation');
+	performanceData.productValidation.wasm = elapsed;
+	displayResult('productResults', parsedResult, '🌐 WebAssembly Client-Side Validation', elapsed, 'productValidation');
     } catch (error) {
 	displayError('productResults', error);
     }
@@ -92,13 +113,20 @@ function validateProductServer() {
 	in_stock: document.getElementById('productInStock').checked
     };
 
+    const start = performance.now();
     fetch('/api/validate-product', {
 	method: 'POST',
 	headers: { 'Content-Type': 'application/json' },
 	body: JSON.stringify(product)
     })
-    .then(response => response.json())
-    .then(result => displayResult('productResults', result, '🖥️ Server-Side API Validation'))
+    .then(response => {
+	const elapsed = performance.now() - start;
+	return response.json().then(result => ({ result, elapsed }));
+    })
+    .then(({ result, elapsed }) => {
+	performanceData.productValidation.server = elapsed;
+	displayResult('productResults', result, '🖥️ Server-Side API Validation', elapsed, 'productValidation');
+    })
     .catch(error => displayError('productResults', error));
 }
 
@@ -120,9 +148,12 @@ function calculateOrderWasmButton() {
 	    quantities: quantities
 	};
 
+	const start = performance.now();
 	const result = window.calculateOrderTotalWasm(JSON.stringify(order), JSON.stringify(user));
+	const elapsed = performance.now() - start;
 	const parsedResult = (typeof result === 'string') ? JSON.parse(result) : result;
-	displayOrderResult('orderResults', parsedResult, '🌐 WebAssembly Client-Side Calculation');
+	performanceData.orderCalculation.wasm = elapsed;
+	displayOrderResult('orderResults', parsedResult, '🌐 WebAssembly Client-Side Calculation', elapsed, 'orderCalculation');
     } catch (error) {
 	displayError('orderResults', error);
     }
@@ -142,13 +173,20 @@ function calculateOrderServer() {
 	    user: user
 	};
 
+	const start = performance.now();
 	fetch('/api/calculate-order', {
 	    method: 'POST',
 	    headers: { 'Content-Type': 'application/json' },
 	    body: JSON.stringify(requestData)
 	})
-	.then(response => response.json())
-	.then(result => displayOrderResult('orderResults', result, '🖥️ Server-Side API Calculation'))
+	.then(response => {
+	    const elapsed = performance.now() - start;
+	    return response.json().then(result => ({ result, elapsed }));
+	})
+	.then(({ result, elapsed }) => {
+	    performanceData.orderCalculation.server = elapsed;
+	    displayOrderResult('orderResults', result, '🖥️ Server-Side API Calculation', elapsed, 'orderCalculation');
+	})
 	.catch(error => displayError('orderResults', error));
     } catch (error) {
 	displayError('orderResults', error);
@@ -168,11 +206,13 @@ function getRecommendationsWasmButton() {
 	const products = demoProducts;
 	const order = { products: JSON.parse(document.getElementById('orderProducts').value) };
 
+	const start = performance.now();
 	const result = window.recommendProductsWasm(
 	    JSON.stringify(user),
 	    JSON.stringify(products),
 	    JSON.stringify(order)
 	);
+	const elapsed = performance.now() - start;
 
 	const parsedResult = (typeof result === 'string') ? JSON.parse(result) : result;
 	
@@ -182,7 +222,8 @@ function getRecommendationsWasmButton() {
 	} else {
 	    // Extract the recommendations array from the WASM response
 	    const recommendations = parsedResult.recommendations || parsedResult;
-	    displayRecommendations('recommendationResults', recommendations, '🌐 WebAssembly Client-Side Recommendations');
+	    performanceData.recommendations.wasm = elapsed;
+	    displayRecommendations('recommendationResults', recommendations, '🌐 WebAssembly Client-Side Recommendations', elapsed, 'recommendations');
 	}
     } catch (error) {
 	displayError('recommendationResults', error);
@@ -201,13 +242,20 @@ function getRecommendationsServer() {
 	    order: order
 	};
 
+	const start = performance.now();
 	fetch('/api/recommend-products', {
 	    method: 'POST',
 	    headers: { 'Content-Type': 'application/json' },
 	    body: JSON.stringify(requestData)
 	})
-	.then(response => response.json())
-	.then(result => displayRecommendations('recommendationResults', result, '🖥️ Server-Side API Recommendations'))
+	.then(response => {
+	    const elapsed = performance.now() - start;
+	    return response.json().then(result => ({ result, elapsed }));
+	})
+	.then(({ result, elapsed }) => {
+	    performanceData.recommendations.server = elapsed;
+	    displayRecommendations('recommendationResults', result, '🖥️ Server-Side API Recommendations', elapsed, 'recommendations');
+	})
 	.catch(error => displayError('recommendationResults', error));
     } catch (error) {
 	displayError('recommendationResults', error);
@@ -345,22 +393,60 @@ function getCurrentUser() {
     };
 }
 
-function displayResult(elementId, result, title) {
+function displayResult(elementId, result, title, elapsed, performanceKey) {
     const element = document.getElementById(elementId);
     const isValid = result.valid;
 
     element.className = `results ${isValid ? 'success' : 'error'}`;
-    element.textContent = `${title}\n\n` +
+    
+    // Build timing info with comparison
+    let timingInfo = '';
+    if (elapsed !== undefined) {
+	timingInfo = `⚡ Execution Time: ${elapsed.toFixed(2)}ms`;
+	
+	// Add comparison if both WASM and server times are available
+	if (performanceKey && performanceData[performanceKey]) {
+	    const data = performanceData[performanceKey];
+	    if (data.wasm !== null && data.server !== null) {
+		const speedup = (data.server / data.wasm).toFixed(1);
+		const faster = data.wasm < data.server ? 'WASM' : 'Server';
+		const difference = Math.abs(data.server - data.wasm).toFixed(2);
+		timingInfo += ` | 🏆 ${faster} ${speedup}x faster (${difference}ms difference)`;
+	    }
+	}
+	timingInfo += '\n\n';
+    }
+    
+    element.textContent = `${title}\n${timingInfo}` +
 	`Status: ${isValid ? '✅ Valid' : '❌ Invalid'}\n` +
 	(result.errors && result.errors.length > 0 ?
 	    `Errors:\n${result.errors.map(e => `• ${e}`).join('\n')}` :
 	    'All validation rules passed!');
 }
 
-function displayOrderResult(elementId, result, title) {
+function displayOrderResult(elementId, result, title, elapsed, performanceKey) {
     const element = document.getElementById(elementId);
     element.className = 'results success';
-    element.textContent = `${title}\n\n` +
+    
+    // Build timing info with comparison
+    let timingInfo = '';
+    if (elapsed !== undefined) {
+	timingInfo = `⚡ Execution Time: ${elapsed.toFixed(2)}ms`;
+	
+	// Add comparison if both WASM and server times are available
+	if (performanceKey && performanceData[performanceKey]) {
+	    const data = performanceData[performanceKey];
+	    if (data.wasm !== null && data.server !== null) {
+		const speedup = (data.server / data.wasm).toFixed(1);
+		const faster = data.wasm < data.server ? 'WASM' : 'Server';
+		const difference = Math.abs(data.server - data.wasm).toFixed(2);
+		timingInfo += ` | 🏆 ${faster} ${speedup}x faster (${difference}ms difference)`;
+	    }
+	}
+	timingInfo += '\n\n';
+    }
+    
+    element.textContent = `${title}\n${timingInfo}` +
 	`Subtotal: $${result.subtotal.toFixed(2)}\n` +
 	`Tax: $${result.tax.toFixed(2)}\n` +
 	`Shipping: $${result.shipping.toFixed(2)}\n` +
@@ -368,15 +454,33 @@ function displayOrderResult(elementId, result, title) {
 	`Total: $${result.total.toFixed(2)}`;
 }
 
-function displayRecommendations(elementId, result, title) {
+function displayRecommendations(elementId, result, title, elapsed, performanceKey) {
     const element = document.getElementById(elementId);
     element.className = 'results info';
 
+    // Build timing info with comparison
+    let timingInfo = '';
+    if (elapsed !== undefined) {
+	timingInfo = `⚡ Execution Time: ${elapsed.toFixed(2)}ms`;
+	
+	// Add comparison if both WASM and server times are available
+	if (performanceKey && performanceData[performanceKey]) {
+	    const data = performanceData[performanceKey];
+	    if (data.wasm !== null && data.server !== null) {
+		const speedup = (data.server / data.wasm).toFixed(1);
+		const faster = data.wasm < data.server ? 'WASM' : 'Server';
+		const difference = Math.abs(data.server - data.wasm).toFixed(2);
+		timingInfo += ` | 🏆 ${faster} ${speedup}x faster (${difference}ms difference)`;
+	    }
+	}
+	timingInfo += '\n\n';
+    }
+    
     if (Array.isArray(result) && result.length > 0) {
-	element.textContent = `${title}\n\nRecommended Products:\n` +
+	element.textContent = `${title}\n${timingInfo}Recommended Products:\n` +
 	    result.map(p => `• ${p.name} - $${p.price} (${p.category})`).join('\n');
     } else {
-	element.textContent = `${title}\n\nNo recommendations available.`;
+	element.textContent = `${title}\n${timingInfo}No recommendations available.`;
     }
 }
 
@@ -456,11 +560,13 @@ function benchmarkMatrixComprehensive() {
 	const speedupConcurrent = (jsTime / concurrentTime).toFixed(2);
 	const concurrentVsSingle = (singleTime / concurrentTime).toFixed(2);
 
+	document.getElementById('matrixResults').className = 'results success benchmark-results-enhanced';
 	document.getElementById('matrixResults').innerHTML = `
-	    <strong>Matrix Multiplication (${sizeStr})</strong><br>
-	    <span style="color: #f39c12;">JavaScript:</span> ${jsTime.toFixed(2)}ms<br>
-	    <span style="color: #3498db;">Single-Thread WASM:</span> ${singleTime.toFixed(2)}ms (${speedupSingle}x vs JS)<br>
-	    <span style="color: #27ae60;">Concurrent WASM:</span> ${concurrentTime.toFixed(2)}ms (${speedupConcurrent}x vs JS, ${concurrentVsSingle}x vs Single)
+	    <strong>🔢 Matrix Multiplication (${sizeStr})</strong><br><br>
+	    📊 <span class="benchmark-time-js">JavaScript:</span> ${jsTime.toFixed(1)}ms<br>
+	    🔧 <span class="benchmark-time-single">Single-Thread WASM:</span> ${singleTime.toFixed(1)}ms <span class="benchmark-speedup">${speedupSingle}x faster</span><br>
+	    🚀 <span class="benchmark-time-concurrent">Concurrent WASM:</span> ${concurrentTime.toFixed(1)}ms <span class="benchmark-speedup">${speedupConcurrent}x faster</span><br><br>
+	    <em>Concurrent WASM is ${concurrentVsSingle}x faster than Single-Thread WASM!</em>
 	`;
 
 	displayThreeWayComparison('matrixComparison', jsTime, singleTime, concurrentTime);
@@ -527,11 +633,13 @@ function benchmarkMandelbrotComprehensive() {
 	const speedupConcurrent = (jsTime / concurrentTime).toFixed(2);
 	const concurrentVsSingle = (singleTime / concurrentTime).toFixed(2);
 
+	document.getElementById('mandelbrotResults').className = 'results success benchmark-results-enhanced';
 	document.getElementById('mandelbrotResults').innerHTML = `
-	    <strong>Mandelbrot Set (${sizeStr}, ${maxIter} iterations)</strong><br>
-	    <span style="color: #f39c12;">JavaScript:</span> ${jsTime.toFixed(2)}ms<br>
-	    <span style="color: #3498db;">Single-Thread WASM:</span> ${singleTime.toFixed(2)}ms (${speedupSingle}x vs JS)<br>
-	    <span style="color: #27ae60;">Concurrent WASM:</span> ${concurrentTime.toFixed(2)}ms (${speedupConcurrent}x vs JS, ${concurrentVsSingle}x vs Single)
+	    <strong>🎨 Mandelbrot Set (${sizeStr}, ${maxIter} iterations)</strong><br><br>
+	    📊 <span class="benchmark-time-js">JavaScript:</span> ${jsTime.toFixed(1)}ms<br>
+	    🔧 <span class="benchmark-time-single">Single-Thread WASM:</span> ${singleTime.toFixed(1)}ms <span class="benchmark-speedup">${speedupSingle}x faster</span><br>
+	    🚀 <span class="benchmark-time-concurrent">Concurrent WASM:</span> ${concurrentTime.toFixed(1)}ms <span class="benchmark-speedup">${speedupConcurrent}x faster</span><br><br>
+	    <em>Concurrent WASM is ${concurrentVsSingle}x faster than Single-Thread WASM!</em>
 	`;
 
 	displayThreeWayComparison('mandelbrotComparison', jsTime, singleTime, concurrentTime);
@@ -573,11 +681,13 @@ function benchmarkHashComprehensive() {
 	const speedupConcurrent = (jsTime / concurrentTime).toFixed(2);
 	const concurrentVsSingle = (singleTime / concurrentTime).toFixed(2);
 
+	document.getElementById('hashResults').className = 'results success benchmark-results-enhanced';
 	document.getElementById('hashResults').innerHTML = `
-	    <strong>Hash Computation (${iterations.toLocaleString()} iterations)</strong><br>
-	    <span style="color: #f39c12;">JavaScript:</span> ${jsTime.toFixed(2)}ms<br>
-	    <span style="color: #3498db;">Single-Thread WASM:</span> ${singleTime.toFixed(2)}ms (${speedupSingle}x vs JS)<br>
-	    <span style="color: #27ae60;">Concurrent WASM:</span> ${concurrentTime.toFixed(2)}ms (${speedupConcurrent}x vs JS, ${concurrentVsSingle}x vs Single)
+	    <strong>🔐 Hash Computation (${iterations.toLocaleString()} iterations)</strong><br><br>
+	    📊 <span class="benchmark-time-js">JavaScript:</span> ${jsTime.toFixed(1)}ms<br>
+	    🔧 <span class="benchmark-time-single">Single-Thread WASM:</span> ${singleTime.toFixed(1)}ms <span class="benchmark-speedup">${speedupSingle}x faster</span><br>
+	    🚀 <span class="benchmark-time-concurrent">Concurrent WASM:</span> ${concurrentTime.toFixed(1)}ms <span class="benchmark-speedup">${speedupConcurrent}x faster</span><br><br>
+	    <em>Concurrent WASM is ${concurrentVsSingle}x faster than Single-Thread WASM!</em>
 	`;
 
 	displayThreeWayComparison('hashComparison', jsTime, singleTime, concurrentTime);
@@ -642,11 +752,13 @@ function benchmarkRayTracingComprehensive() {
 	const speedupConcurrent = (jsTime / concurrentTime).toFixed(2);
 	const concurrentVsSingle = (singleTime / concurrentTime).toFixed(2);
 
+	document.getElementById('rayTracingResults').className = 'results success benchmark-results-enhanced';
 	document.getElementById('rayTracingResults').innerHTML = `
-	    <strong>Ray Tracing (${width}x${height}, ${samples} samples)</strong><br>
-	    <span style="color: #f39c12;">JavaScript:</span> ${jsTime.toFixed(2)}ms<br>
-	    <span style="color: #3498db;">Single-Thread WASM:</span> ${singleTime.toFixed(2)}ms (${speedupSingle}x vs JS)<br>
-	    <span style="color: #27ae60;">Concurrent WASM:</span> ${concurrentTime.toFixed(2)}ms (${speedupConcurrent}x vs JS, ${concurrentVsSingle}x vs Single)
+	    <strong>🎭 Ray Tracing (${width}x${height}, ${samples} samples)</strong><br><br>
+	    📊 <span class="benchmark-time-js">JavaScript:</span> ${jsTime.toFixed(1)}ms<br>
+	    🔧 <span class="benchmark-time-single">Single-Thread WASM:</span> ${singleTime.toFixed(1)}ms <span class="benchmark-speedup">${speedupSingle}x faster</span><br>
+	    🚀 <span class="benchmark-time-concurrent">Concurrent WASM:</span> ${concurrentTime.toFixed(1)}ms <span class="benchmark-speedup">${speedupConcurrent}x faster</span><br><br>
+	    <em>Concurrent WASM is ${concurrentVsSingle}x faster than Single-Thread WASM!</em>
 	`;
 
 	displayThreeWayComparison('rayTracingComparison', jsTime, singleTime, concurrentTime);

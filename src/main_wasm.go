@@ -65,15 +65,27 @@ func main() {
 
 	// ====================================================================
 	// LEGACY/COMPATIBILITY ALIASES
-	// Shorter function names for backward compatibility and ease of use
+	// Standardized function names for backward compatibility and ease of use
 	// ====================================================================
-	// Basic ray tracing from mandelbrot.go
-	js.Global().Set("rayTracing", js.FuncOf(rayTracingWasm))
+	// PERFORMANCE FIX: Don't overwrite the optimized rayTracingWasmSingle!
+	// js.Global().Set("rayTracingWasm", js.FuncOf(rayTracingWasm)) // REMOVED - was overwriting optimized version
 
-	// User-friendly names for optimized versions
+	// User-friendly standardized names for optimized versions
+	js.Global().Set("mandelbrotWasmFast", js.FuncOf(mandelbrotOptimizedWasm))
+	js.Global().Set("matrixMultiplyWasmFast", js.FuncOf(matrixMultiplyOptimizedWasm))
+	js.Global().Set("sha256HashWasmFast", js.FuncOf(sha256HashOptimizedWasm))
+
+	// Keep legacy names for backward compatibility
+	js.Global().Set("rayTracing", js.FuncOf(rayTracingWasm)) // Keep this for legacy compatibility only
 	js.Global().Set("mandelbrotFast", js.FuncOf(mandelbrotOptimizedWasm))
 	js.Global().Set("matrixMultiplyFast", js.FuncOf(matrixMultiplyOptimizedWasm))
 	js.Global().Set("sha256HashFast", js.FuncOf(sha256HashOptimizedWasm))
+
+	// ====================================================================
+	// UNIFIED BENCHMARK INTERFACE
+	// Register consolidated benchmark functions for cleaner API
+	// ====================================================================
+	registerUnifiedBenchmarks()
 
 	// ====================================================================
 	// UTILITY FUNCTIONS

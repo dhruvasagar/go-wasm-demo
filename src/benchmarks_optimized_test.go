@@ -319,64 +319,8 @@ func TestMandelbrotConcurrentCorrectness(t *testing.T) {
 	}
 }
 
-// Fast square root using Newton-Raphson approximation (for testing)
-func fastSqrtTest(x float64) float64 {
-	if x <= 0 {
-		return 0
-	}
-	if x == 1 {
-		return 1
-	}
-
-	// Better initial guess
-	var guess float64
-	if x > 1 {
-		// For x > 1, start with x/2
-		guess = x * 0.5
-	} else {
-		// For x < 1, start with (x + 1)/2
-		guess = (x + 1) * 0.5
-	}
-
-	// More iterations for better accuracy
-	for i := 0; i < 5; i++ {
-		if guess == 0 {
-			break
-		}
-		guess = 0.5 * (guess + x/guess)
-	}
-
-	return guess
-}
-
-// Test fast square root implementation
-func TestFastSqrt(t *testing.T) {
-	tests := []struct {
-		input     float64
-		expected  float64
-		tolerance float64
-	}{
-		{0.0, 0.0, 1e-10},
-		{1.0, 1.0, 1e-10},
-		{4.0, 2.0, 1e-4},
-		{9.0, 3.0, 1e-4},
-		{16.0, 4.0, 1e-4},
-		{25.0, 5.0, 1e-4},
-		{100.0, 10.0, 1e-3},
-		{0.25, 0.5, 1e-4},
-		{0.01, 0.1, 1e-3},
-	}
-
-	for _, tt := range tests {
-		t.Run(fmt.Sprintf("sqrt(%.2f)", tt.input), func(t *testing.T) {
-			result := fastSqrtTest(tt.input)
-			if absDiff(result-tt.expected) > tt.tolerance {
-				t.Errorf("fastSqrt(%.2f) = %.6f, want %.6f (tolerance %.1e)",
-					tt.input, result, tt.expected, tt.tolerance)
-			}
-		})
-	}
-}
+// NOTE: fastSqrt tests removed - function was replaced with math.Sqrt() for better performance
+// The custom Newton-Raphson implementation was slower than the standard library
 
 // Benchmark concurrent vs single-threaded matrix multiplication
 func BenchmarkMatrixMultiplyConcurrent50x50(b *testing.B) {
