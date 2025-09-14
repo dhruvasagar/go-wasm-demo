@@ -285,18 +285,33 @@ GOOS=windows GOARCH=amd64 go build -o server.exe
 - **Small Applications**: Overhead may not be worth it
 - **Legacy Browser Support**: WebAssembly requires modern browsers
 
+## 📚 **Extended Documentation**
+
+### **Advanced Topics:**
+- **[Mobile WebAssembly](./docs/MOBILE_WEBASSEMBLY.md)** - **NEW!** Comprehensive guide to WebAssembly on mobile platforms, including React Native integration, native iOS/Android support, and the WASI roadmap for 2024-2026
+- **[Case Studies](./docs/CASE_STUDIES.md)** - Real-world WebAssembly applications and success stories
+- **[Testing Guide](./docs/TESTING.md)** - Comprehensive testing strategy and validation methods
+- **[Optimization Guide](./docs/optimizations/OPTIMIZATION_GUIDE.md)** - Detailed WebAssembly performance optimization strategies
+- **[Performance Results](./docs/optimizations/WASM_OPTIMIZATION_RESULTS.md)** - Benchmark data and analysis
+
+### **Presentations:**
+- **[25-Minute Conference Talk](./docs/presentations/PRESENTATION_25MIN.md)** - Optimized for standard conference slots
+- **[30-Minute Workshop](./docs/presentations/PRESENTATION_30MIN.md)** - Extended format with deep-dive examples
+- **[Full Technical Presentation](./docs/presentations/PRESENTATION.md)** - Complete presentation with all examples
+
 ## 🚀 **Next Steps**
 
 1. **Explore the Demo**: Run the interactive examples to see WebAssembly in action
 2. **Examine the Code**: Study how shared business logic is implemented
 3. **Run Benchmarks**: Compare performance between JavaScript and WebAssembly
-4. **Build Your Own**: Apply these patterns to your specific use cases
-5. **Share Results**: Contribute performance data and use cases to the community
+4. **Try Mobile Integration**: Check out our [Mobile WebAssembly Guide](./docs/MOBILE_WEBASSEMBLY.md) for React Native and PWA examples
+5. **Build Your Own**: Apply these patterns to your specific use cases
+6. **Share Results**: Contribute performance data and use cases to the community
 
 ---
 
 **Ready to revolutionize your web development?** 🚀
-*Experience the power of unified Go codebases with WebAssembly!*
+*Experience the power of unified Go codebases with WebAssembly - from browsers to mobile apps!*
 
 ## 📚 **Resources & References**
 

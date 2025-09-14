@@ -1,26 +1,26 @@
-# WebAssembly in Go: From Chaos to Unity (30-Minute Edition)
+# WebAssembly in Go: From Chaos to Unity (25-Minute Edition)
 ## A Developer's Journey to Code Harmony 🚀
 
-> **Presenter Notes:** This condensed version maintains the story arc while fitting a 30-minute slot. Focus on live demos and key moments. Skip detailed Q&A - save 5 minutes for quick questions.
+> **Presenter Notes:** Optimized version for standard conference slots. Maintains story arc and key demos while fitting comfortably in 25 minutes. Focus on live demos and practical takeaways. Save 3-4 minutes for interactive Q&A.
 
 ---
 
-## What You'll Discover in 30 Minutes 🎯
+## What You'll Discover in 25 Minutes 🎯
 
-### 🔍 **The Universal Problem** (5 min)
+### 🔍 **The Universal Problem** (4 min)
 - Code duplication nightmare across frontend/backend
 - Real-world validation drift that breaks production
 
-### 🌟 **The WebAssembly Solution** (8 min)
+### 🌟 **The WebAssembly Solution** (7 min)
 - Live demo: Identical Go business logic running everywhere
 - What WebAssembly actually is (in plain English)
 
-### 📈 **Performance & Implementation** (12 min)
+### 📈 **Performance & Implementation** (10 min)
 - Honest benchmarks and optimization strategies
 - Project structure and build process
 - Real-world case studies from our demo
 
-### 🚀 **Your Action Plan** (5 min)
+### 🚀 **Your Action Plan** (4 min)
 - When to use WebAssembly vs JavaScript
 - Ready-to-clone repository and next steps
 
@@ -35,7 +35,6 @@
 - 🚀 **10+ years** building full-stack applications (the good, bad, and ugly!)
 - 🔧 **Polyglot Developer**: Go, JavaScript, Python, Rust (and the occasional PHP nightmare)
 - 🌍 **Open Source Contributor**: Active in Go and WebAssembly communities
-- 📚 **Learner at Heart**: Always exploring new ways to solve old problems
 
 ### Why This Topic?
 
@@ -43,18 +42,16 @@
 - Built an e-commerce platform with validation logic in **4 different places**
 - Spent sleepless nights debugging "works on frontend, fails on backend" bugs
 - Discovered WebAssembly while searching for a better way at 2 AM (true story!)
-- Built this demo to prove it works in production, not just tutorials
 
 ### What I Bring:
 
 - 🎯 **Real Experience**: This demo represents actual production patterns I use
 - 🔍 **Honest Perspective**: I'll show you when WebAssembly loses to JavaScript
 - 🛠️ **Practical Focus**: Working code you can use immediately, not theoretical concepts
-- 🎭 **Story-Driven**: Learning should be entertaining, not boring!
 
 **My Promise:** You'll leave with working code, realistic expectations, and a clear path forward!
 
-> **Presenter Notes:** Keep this personal and relatable! Share your own "validation drift" story if you have one. The 2 AM discovery is relatable to every developer who's stayed up late looking for solutions. Establish credibility with your real experience while being humble about the learning journey. This builds trust before diving into technical content.
+> **Presenter Notes:** Keep this personal and relatable! Share your own "validation drift" story if you have one. The 2 AM discovery is relatable to every developer. This builds trust before diving into technical content.
 
 ---
 
@@ -99,7 +96,7 @@ func validateEmail(email string) bool {
 
 **Alex:** "Wait... WHAT?!"
 
-### WebAssembly in 60 Seconds
+### WebAssembly in 90 Seconds
 
 **What it IS:**
 - 🔧 **Compilation Target**: Run ANY language in the browser (not just JavaScript!)
@@ -130,16 +127,16 @@ WebAssembly: Go/Rust/C++ ──► WASM ──► Browser ⚡
 
 **Key Insight:** It's not about raw speed—it's about **consistency, reuse, and offline capability**!
 
-> **Presenter Notes:** **LIVE BENCHMARK TIME!** Run the matrix multiplication: 300x300 shows JS often wins, but 800x600 Mandelbrot shows WASM dominating. Point out: "For our order calculator handling 10 country tax rates and shipping logic, consistency matters more than speed." This proves your honest approach to performance trade-offs while giving them the decision framework.
+> **Presenter Notes:** **LIVE BENCHMARK TIME!** Run the matrix multiplication: 300x300 shows JS often wins, but 800x600 Mandelbrot shows WASM dominating. Point out: "For our order calculator handling 10 country tax rates and shipping logic, consistency matters more than speed." This proves your honest approach to performance trade-offs.
 
----
-
-### The Optimization Lesson
+### The Optimization Lesson (Condensed)
 
 ```go
 // ❌ BAD: Boundary calls in loops (45x slower!)
 for i := 0; i < size; i++ {
-    val := jsArray.Index(i).Float() // 27 million calls!
+	for j := 0; j < size; j++ {
+		val := jsArray.Index(i*size + j).Float() // 27 million calls!
+	}
 }
 
 // ✅ GOOD: Batch operations
@@ -147,11 +144,6 @@ goArray := copyFromJS(jsArray)    // One transfer
 result := computeInGo(goArray)    // Fast computation
 return copyToJS(result)           // One return
 ```
-
-**Real Results:**
-- Naive WASM: 1593ms (terrible!)
-- Optimized WASM: ~40ms (competitive!)
-- JavaScript: ~35ms (V8 rocks!)
 
 **Takeaway:** WebAssembly performance is about minimizing boundary crossings!
 
@@ -175,6 +167,11 @@ go-wasm-demo/
 // shared_models.go - The source of truth
 func ValidateUser(user User) ValidationResult {
     // Same complex logic for browser AND server
+	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	if !emailRegex.MatchString(user.Email) {
+		result.Valid = false
+		result.Errors = append(result.Errors, "Invalid email format")
+	}
     // 9 validation rules including email regex, age limits, name checks
     // No more frontend/backend drift!
 }
@@ -183,7 +180,7 @@ func ValidateUser(user User) ValidationResult {
 ### The JavaScript Bridge
 
 ```javascript
-// Loading WebAssembly  
+// Loading WebAssembly
 const go = new Go();
 WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject)
     .then(result => go.run(result.instance));
@@ -209,13 +206,7 @@ const result = window.validateUserWasm(JSON.stringify(userData));
 - **Features:** Premium discounts, shipping logic, currency formatting
 - **Result:** 100% calculation consistency
 
-**Product Recommendations (Advanced Algorithm!):**
-- **Before:** Only server-side, slow user experience
-- **After:** Full ML-style scoring runs client-side instantly
-- **Algorithm:** Age preferences, category matching, price similarity
-- **Result:** Instant recommendations, zero server roundtrips
-
-### The Offline Superpower
+**The Offline Superpower:**
 
 ```javascript
 if (!navigator.onLine) {
@@ -229,9 +220,9 @@ if (!navigator.onLine) {
 
 > **Presenter Notes:** **FINAL DEMO!** Show the order calculator with complex scenario (premium user, different countries). Demonstrate recommendations being instant. If technically feasible, briefly disconnect WiFi to show offline capability. This is where WebAssembly really shines - full business logic without server dependency.
 
-### Now You Can Decide: The Strategic Decision Framework
+### Now You Can Decide: The Decision Framework
 
-After witnessing the performance data, implementation complexity, and real-world success stories, here's your decision tree:
+After seeing all the evidence, here's your decision tree:
 
 **Choose WebAssembly When:**
 - 🎯 **Complex Business Logic** that needs consistency across platforms
@@ -239,31 +230,19 @@ After witnessing the performance data, implementation complexity, and real-world
 - 🧮 **Heavy Computation** (Mandelbrot 800x600 → 2-4x faster)
 - 📱 **Code Reuse** matters more than micro-optimizations
 - 💰 **Maintenance Cost** of keeping logic in sync is high
-- 🔒 **Security**: Keep sensitive business logic compiled and harder to reverse-engineer
-- 🏢 **Enterprise**: Need guaranteed consistency across multiple client applications
 
 **Choose JavaScript When:**
 - 🚀 **DOM Manipulation** is the primary need
 - 🔗 **Small Operations** where V8 JIT optimization shines
 - 🎨 **UI/Animation** focused development
 - ⚡ **Rapid Prototyping** where bundle size matters most
-- 📦 **Simple Applications** with minimal business logic
-- 🌐 **SEO Requirements** where server-side rendering is critical
 
-**Mobile Code Sharing (Extended):**
-- 📱 **Today (2024)**: WebAssembly works in mobile browsers (99% support), React Native integration, and experimental iOS native runtimes via Wasm3/Wasmer
-- 🚀 **2025**: WASI Preview 3 will enable better native mobile integration
-- 🔮 **2026**: WASI 1.0 stable for production mobile app development
-- 💡 **Strategy**: Progressive enhancement - start with mobile PWAs, expand to React Native, plan for native integration
-- 🏗️ **Architecture**: Hybrid approach works best - native UI + WASM business logic
+**Mobile Code Sharing:**
+- 📱 **Today**: WebAssembly works in mobile browsers, React Native, and experimental native runtimes
+- 🚀 **Tomorrow**: WASI will enable full mobile app integration
+- 💡 **Reality**: Hybrid approach often best - native UI + WASM business logic
 
-**The Strategic Truth:** It's not WebAssembly vs JavaScript vs Native - it's about strategic code sharing across every platform!
-
-**Production Considerations:**
-- **Bundle Size**: WASM adds ~500KB-2MB, but eliminates code duplication
-- **Development Workflow**: Debug in Go, deploy to WASM
-- **Browser Support**: 95%+ modern browsers, graceful degradation for others
-- **Team Skills**: If your team knows Go, you're already 90% there
+**The Truth:** It's not WebAssembly vs JavaScript - it's about using both strategically!
 
 ---
 
@@ -313,14 +292,13 @@ resources := []string{
     "📱 docs/MOBILE_WEBASSEMBLY.md",          // NEW! Mobile integration guide
     "📖 webassembly.org/getting-started/developers-guide/",
     "📊 Our detailed benchmarks: WASM_OPTIMIZATION_RESULTS.md",
-    "🧪 More examples: CASE_STUDIES.md",
 }
 
 // The best code is code you write once and trust everywhere!
 fmt.Println("Now go forth and build amazing things! 🚀")
 ```
 
-### Quick Q&A (5 minutes)
+### Quick Q&A (3-4 minutes)
 
 **"Isn't WASM bigger than JS?"** → Yes, but eliminates code duplication + enables offline functionality.
 
@@ -328,8 +306,29 @@ fmt.Println("Now go forth and build amazing things! 🚀")
 
 **"Browser compatibility?"** → 95%+ modern browser coverage. Progressive enhancement for older ones.
 
+**"Performance vs JavaScript?"** → Depends on use case - consistency and offline capability are the real wins.
+
 ---
 
 *Thank you! Questions?* 🎤
 
-> **Presenter Notes:** End with high energy! You've shown working code, honest benchmarks, and real-world applications in 25 minutes. Save 5 minutes for questions. The GitHub repo gives them everything they need to start immediately. Key message: WebAssembly + Go solves the code duplication problem while providing offline capability and consistent performance.
+> **Presenter Notes:** End with high energy! You've shown working code, honest benchmarks, and real-world applications in 22-23 minutes. Save 3-4 minutes for questions. The GitHub repo gives them everything they need to start immediately. Key message: WebAssembly + Go solves the code duplication problem while providing offline capability and consistent performance.
+
+---
+
+## Time Allocation Summary:
+
+- **Introduction + About Me:** 1.5 minutes
+- **Act I (Problem):** 4 minutes  
+- **Act II (Solution + Demo):** 7 minutes
+- **Act III (Performance + Implementation):** 10 minutes
+- **Act IV (Real-world + Action Plan):** 4 minutes
+- **Q&A:** 3-4 minutes
+- **Total:** ~25 minutes
+
+**Key Changes from 30-min version:**
+- Condensed "About Me" section (removed detailed background)
+- Streamlined optimization lesson (removed detailed code examples)
+- Combined case studies (removed product recommendations deep-dive)
+- Shorter Q&A time
+- Maintained all critical demos and "aha moments"
