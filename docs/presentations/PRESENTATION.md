@@ -5,6 +5,35 @@
 
 ---
 
+## About Me: Your Guide on This Journey 👋
+
+### Who Am I?
+
+**Dhruva Sagar** - *Software Engineer & Code Architecture Explorer*
+
+- 🚀 **10+ years** building full-stack applications (the good, bad, and ugly!)
+- 🔧 **Polyglot Developer**: Go, JavaScript, Python, Rust (and the occasional PHP nightmare)
+- 🌍 **Open Source Contributor**: Active in Go and WebAssembly communities
+
+### Why This Topic?
+
+**The Personal Pain Point:**
+- Built an e-commerce platform with validation logic in **4 different places**
+- Spent sleepless nights debugging "works on frontend, fails on backend" bugs
+- Discovered WebAssembly while searching for a better way at 2 AM (true story!)
+
+### What I Bring:
+
+- 🎯 **Real Experience**: This demo represents actual production patterns I use
+- 🔍 **Honest Perspective**: I'll show you when WebAssembly loses to JavaScript
+- 🛠️ **Practical Focus**: Working code you can use immediately, not theoretical concepts
+
+**My Promise:** You'll leave with working code, realistic expectations, and a clear path forward!
+
+> **Presenter Notes:** Keep this personal and relatable! Share your own "validation drift" story if you have one. The 2 AM discovery is relatable to every developer. This builds trust before diving into technical content.
+
+---
+
 ## What You'll Master Today 🎯
 
 By the end of this presentation, you'll understand:

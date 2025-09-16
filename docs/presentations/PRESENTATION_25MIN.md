@@ -5,27 +5,6 @@
 
 ---
 
-## What You'll Discover in 25 Minutes 🎯
-
-### 🔍 **The Universal Problem** (4 min)
-- Code duplication nightmare across frontend/backend
-- Real-world validation drift that breaks production
-
-### 🌟 **The WebAssembly Solution** (7 min)
-- Live demo: Identical Go business logic running everywhere
-- What WebAssembly actually is (in plain English)
-
-### 📈 **Performance & Implementation** (10 min)
-- Honest benchmarks and optimization strategies
-- Project structure and build process
-- Real-world case studies from our demo
-
-### 🚀 **Your Action Plan** (4 min)
-- When to use WebAssembly vs JavaScript
-- Ready-to-clone repository and next steps
-
----
-
 ## About Me: Your Guide on This Journey 👋
 
 ### Who Am I?
@@ -52,6 +31,27 @@
 **My Promise:** You'll leave with working code, realistic expectations, and a clear path forward!
 
 > **Presenter Notes:** Keep this personal and relatable! Share your own "validation drift" story if you have one. The 2 AM discovery is relatable to every developer. This builds trust before diving into technical content.
+
+---
+
+## What You'll Discover in 25 Minutes 🎯
+
+### 🔍 **The Universal Problem** (4 min)
+- Code duplication nightmare across frontend/backend
+- Real-world validation drift that breaks production
+
+### 🌟 **The WebAssembly Solution** (7 min)
+- Live demo: Identical Go business logic running everywhere
+- What WebAssembly actually is (in plain English)
+
+### 📈 **Performance & Implementation** (10 min)
+- Honest benchmarks and optimization strategies
+- Project structure and build process
+- Real-world case studies from our demo
+
+### 🚀 **Your Action Plan** (4 min)
+- When to use WebAssembly vs JavaScript
+- Ready-to-clone repository and next steps
 
 ---
 
