@@ -130,7 +130,7 @@ const rayA = ..., rayB = ..., rayC = ...;  // Instead of a, b, c
 ## 🚀 Testing the Fix
 
 Run the Ray Tracing benchmark in the browser:
-1. Open `http://localhost:8080/`
+1. Open `http://localhost:8181/`
 2. Scroll to "Ray Tracing (Bonus)" section
 3. Click "🚀 Run 3-Way Benchmark"
 

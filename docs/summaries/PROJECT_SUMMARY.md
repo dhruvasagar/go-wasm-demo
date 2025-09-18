@@ -112,8 +112,8 @@ go run src/src/main_server.go src/shared_models.go
 ```
 
 ### **3. View Demos**
-- **WebAssembly Demo**: `http://localhost:8080/`
-- **Server API Demo**: `http://localhost:8080/server.html`
+- **WebAssembly Demo**: `http://localhost:8181/`
+- **Server API Demo**: `http://localhost:8181/server.html`
 
 ## ✅ **Key Benefits Proven**
 

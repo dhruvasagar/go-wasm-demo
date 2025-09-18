@@ -70,8 +70,9 @@ go run main_server.go shared_models.go benchmarks.go
 ```
 
 ### **View Interactive Demos**
-1. **WebAssembly Demo**: `http://localhost:8080/`
-2. **Server API Demo**: `http://localhost:8080/server.html`
+1. **WebAssembly Demo**: `http://localhost:8181/`
+2. **Server API Demo**: `http://localhost:8181/server.html`
+3. **Performance Benchmarks**: `http://localhost:8181/performance_benchmarks.html`
 
 **Experience the power of shared business logic in action!** 🌟
 
@@ -109,7 +110,7 @@ go test -C src -v ./...
 - **Edge Cases**: Boundary condition and stress testing
 - **Code Quality**: gofmt and go vet compliance
 
-See [TESTING.md](./TESTING.md) for detailed testing documentation.
+See [TESTING.md](./docs/TESTING.md) for detailed testing documentation.
 
 ## 🧪 **Live Demo Features**
 
@@ -287,15 +288,20 @@ GOOS=windows GOARCH=amd64 go build -o server.exe
 
 ## 📚 **Extended Documentation**
 
+### **📚 Complete Documentation:**
+**[📖 Documentation Table of Contents](./docs/TABLE_OF_CONTENTS.md)** - Navigate all documentation by topic and experience level
+
 ### **Advanced Topics:**
 - **[Mobile WebAssembly](./docs/MOBILE_WEBASSEMBLY.md)** - **NEW!** Comprehensive guide to WebAssembly on mobile platforms, including React Native integration, native iOS/Android support, and the WASI roadmap for 2024-2026
+- **[WebAssembly Frameworks 2025](./docs/WASM_FRAMEWORKS_2025.md)** - **NEW!** Latest framework developments, WASI 0.2, production-ready frameworks
+- **[WebAssembly in Production](./docs/WEBASSEMBLY_IN_PRODUCTION.md)** - Real companies using WASM (Figma, Adobe, Shopify)
 - **[Case Studies](./docs/CASE_STUDIES.md)** - Real-world WebAssembly applications and success stories
 - **[Testing Guide](./docs/TESTING.md)** - Comprehensive testing strategy and validation methods
 - **[Optimization Guide](./docs/optimizations/OPTIMIZATION_GUIDE.md)** - Detailed WebAssembly performance optimization strategies
 - **[Performance Results](./docs/optimizations/WASM_OPTIMIZATION_RESULTS.md)** - Benchmark data and analysis
 
 ### **Presentations:**
-- **[25-Minute Conference Talk](./docs/presentations/PRESENTATION_25MIN.md)** - Optimized for standard conference slots
+- **[25-Minute Conference Talk](./docs/presentations/PRESENTATION_25MIN.md)** - ⭐ Optimized for standard conference slots
 - **[30-Minute Workshop](./docs/presentations/PRESENTATION_30MIN.md)** - Extended format with deep-dive examples
 - **[Full Technical Presentation](./docs/presentations/PRESENTATION.md)** - Complete presentation with all examples
 
@@ -317,8 +323,10 @@ GOOS=windows GOARCH=amd64 go build -o server.exe
 
 - [Go WebAssembly Documentation](https://github.com/golang/go/wiki/WebAssembly)
 - [WebAssembly.org](https://webassembly.org/)
-- [Performance Optimization Guide](./OPTIMIZATION_GUIDE.md)
-- [Case Studies](./CASE_STUDIES.md)
+- [Performance Optimization Guide](./docs/optimizations/OPTIMIZATION_GUIDE.md)
+- [Case Studies](./docs/CASE_STUDIES.md)
+- [WebAssembly Frameworks 2025](./docs/WASM_FRAMEWORKS_2025.md)
+- [WebAssembly in Production](./docs/WEBASSEMBLY_IN_PRODUCTION.md)
 
 ---
 
